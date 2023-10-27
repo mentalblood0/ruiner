@@ -75,7 +75,7 @@ class Pattern:
 			):
 				result.append(Other(source.value[last_end:m.start()]))
 			last = m
-			result.append(cls(source.value[m.start():m.end()]))
+			result.append(cls(source.value[m.start():m.end()]).specified)
 		if last is None:
 			result.append(Other(source.value))
 		else:
@@ -190,34 +190,24 @@ class Line(Pattern):
 
 		def rendered(self, parameters: 'Template.Parameters', templates: dict[str, 'Template'], left: str = '', right: str = ''):
 
-			highlighted = [
-				e.specified
-				for e in Expression.highlighted(self)
-			]
+			highlighted = Expression.highlighted(self)
 
 			match highlighted[0]:
 				case Other():
 					_left = highlighted[0].rendered(parameters, templates)
-					del highlighted[0]
+					r = 1
 				case _:
 					_left = ''
+					r = 0
 			match highlighted[-1]:
 				case Other():
 					_right = highlighted[-1].rendered(parameters, templates)
-					del highlighted[-1]
 				case _:
 					_right = ''
 
-			return ''.join(
-				Delimiter.expression.pattern.join(
-					_left + _e + _right
-					for _e in e.rendered(parameters, templates, left + _left, _right + right)
-				)
-				if isinstance(e, Reference)
-				else ''.join(
-					e.rendered(parameters, templates)
-				)
-				for e in highlighted
+			return Delimiter.expression.pattern.join(
+				_left + _e + _right
+				for _e in highlighted[r].rendered(parameters, templates, left + _left, _right + right)
 			)
 
 	@functools.cached_property

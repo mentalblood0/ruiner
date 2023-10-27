@@ -24,14 +24,13 @@ def params_list(param_name: str, param_values: list[str]):
 
 
 def test_basic(param_name: str, param_value: str, params_one: ruiner.Template.Parameters):
-
 	assert ruiner.Template(f'<!-- (param){param_name} -->').rendered(params_one) == f'{param_value}'
-	assert ruiner.Template(f'<!-- (param){param_name} -->\n').rendered(params_one) == f'{param_value}'
+	assert ruiner.Template(f'<!-- (param){param_name} -->\n').rendered(params_one) == f'{param_value}\n'
 	assert ruiner.Template(f'{param_value}').rendered({}) == f'{param_value}'
 
 
 def test_empty_template():
-	assert ruiner.Template('') == ''
+	assert ruiner.Template('').rendered({}) == ''
 
 
 def test_ref():
@@ -86,35 +85,42 @@ def test_optional_param():
 
 
 def test_optional_ref():
-
-	addTemplate('test_optional_ref_1', 'lalala')
-	assert ruiner.Template('<!-- (optional)(ref)test_optional_ref_1 -->') == ''
+	templates = {
+		'test_optional_ref_1': ruiner.Template('lalala')
+	}
+	assert ruiner.Template('<!-- (optional)(ref)test_optional_ref_1 -->').rendered(
+		{},
+		templates
+	) == ''
 	assert ruiner.Template(
-		'<!-- (optional)(ref)test_optional_ref_1 -->',
+		'<!-- (optional)(ref)test_optional_ref_1 -->'
+	).rendered(
 		{
 			'test_optional_ref_1': [None]
-		}
-	) == 'lalala\n'
+		},
+		templates
+	) == 'lalala'
 
 
 def test_table():
-
-	addTemplate('Row',
-		'<tr>\n'
-		'	<td><!-- (param)cell --></td>\n'
-		'</tr>\n'
-	)
-
 	assert ruiner.Template(
 		'<table>\n'
 		'	<!-- (ref)Row -->\n'
-		'</table>\n',
-		{
-			"Row": [
-				{"cell": [b"1.1", b"2.1", b"3.1"]},
-				{"cell": [b"1.2", b"2.2", b"3.2"]},
-				{"cell": [b"1.3", b"2.3", b"3.3"]}
+		'</table>',
+	).rendered(
+		parameters = {
+			'Row': [
+				{'cell': ['1.1', '2.1', '3.1']},
+				{'cell': ['1.2', '2.2', '3.2']},
+				{'cell': ['1.3', '2.3', '3.3']}
 			]
+		},
+		templates = {
+			'Row': ruiner.Template(
+				'<tr>\n'
+				'	<td><!-- (param)cell --></td>\n'
+				'</tr>'
+			)
 		}
 	) == (
 		'<table>\n'
@@ -133,26 +139,28 @@ def test_table():
 		'		<td>2.3</td>\n'
 		'		<td>3.3</td>\n'
 		'	</tr>\n'
-		'</table>\n'
+		'</table>'
 	)
 
 
 def test_multiple_params():
 	assert ruiner.Template(
-		'before<!-- (param)a -->between1<!-- (param)b -->between2<!-- (param)c -->after',
+		'before<!-- (param)a -->between1<!-- (param)b -->between2<!-- (param)c -->after'
+	).rendered(
 		 {
 			'a': '<a>',
-			'': '<b>',
+			'b': '<b>',
 			'c': '<c>'
 		 }
-	) == 'before<a>between1<b>between2<c>after\n'
+	) == 'before<a>between1<b>between2<c>after'
 
 
 def test_multiple_params_followed_by_empty_line():
 	assert ruiner.Template(
 		'Rendering <!-- (param)size -->x<!-- (param)size --> table (mean of <!-- (param)experiments_number --> experiments)\n\n',
+	).rendered(
 		{
-			'size': '10',
+			'size':               '10',
 			'experiments_number': '1000'
 		}
 	) == 'Rendering 10x10 table (mean of 1000 experiments)\n\n'

@@ -137,6 +137,10 @@ class Expression(Pattern):
 		return Name(self.groups['Name'])
 
 	@functools.cached_property
+	def optional(self):
+		return len(Optional.extracted(self))
+
+	@functools.cached_property
 	def specified(self):
 		for C in (Parameter, Reference):
 			try:
@@ -150,17 +154,21 @@ class Parameter(Expression):
 	expression = re.compile(Open.pattern + Spaces.pattern + Optional.optional + Expression.Type.Parameter.pattern + Name.named + Spaces.pattern + Close.pattern)
 
 	def rendered(self, parameters: 'Template.Parameters', templates: dict[str, 'Template']):
-		match (result := parameters[self.name.value]):
-			case str():
-				yield result
-			case list():
-				for r in result:
-					match r:
-						case str():
-							yield r
-						case _:
-							raise ValueError
-			case _:
+		try:
+			match (result := parameters[self.name.value]):
+				case list():
+					for r in result:
+						match r:
+							case str():
+								yield r
+							case _:
+								raise ValueError
+				case str():
+					yield result
+				case _:
+					raise ValueError
+		except KeyError:
+			if not self.optional:
 				raise ValueError
 
 class Reference(Expression):
@@ -168,18 +176,22 @@ class Reference(Expression):
 	expression = re.compile(Open.pattern + Spaces.pattern + Optional.optional + Expression.Type.Reference.pattern + Name.named + Spaces.pattern + Close.pattern)
 
 	def rendered(self, parameters: 'Template.Parameters', templates: dict[str, 'Template'], left: str = '', right: str = '') -> typing.Generator[str, typing.Any, typing.Any]:
-		match (inner := parameters[self.name.value]):
-			case str():
+		try:
+			match (inner := parameters[self.name.value]):
+				case str():
+					raise ValueError
+				case list():
+					for p in inner:
+						match p:
+							case str():
+								raise ValueError
+							case _:
+								yield templates[self.name.value].rendered(p, templates, left, right)
+				case _:
+					yield templates[self.name.value].rendered(inner, templates, left, right)
+		except KeyError:
+			if not self.optional:
 				raise ValueError
-			case list():
-				for p in inner:
-					match p:
-						case str():
-							raise ValueError
-						case _:
-							yield templates[self.name.value].rendered(p, templates, left, right)
-			case _:
-				yield templates[self.name.value].rendered(inner, templates)
 
 
 class Line(Pattern):
@@ -206,8 +218,7 @@ class Line(Pattern):
 					_right = ''
 
 			return Delimiter.expression.pattern.join(
-				_left + _e + _right
-				for _e in highlighted[r].rendered(parameters, templates, left + _left, _right + right)
+				highlighted[r].rendered(parameters, templates, left + _left, _right + right)
 			)
 
 	@functools.cached_property

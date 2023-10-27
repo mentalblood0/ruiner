@@ -40,6 +40,6 @@ def templates(row: ruiner.Template):
 def test_drunk_snail(benchmark, table: ruiner.Template, parameters: ruiner.Template.Parameters, templates: dict[str, ruiner.Template]):
 	f = lambda: table.rendered(parameters, templates)
 	first = f()
-	assert len(first) == 221206
+	assert len(first) == 220806
 	benchmark(f)
 	assert first == f()

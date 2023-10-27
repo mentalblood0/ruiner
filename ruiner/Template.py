@@ -239,30 +239,27 @@ class Line(Pattern):
 
 	@functools.cache
 	def _rendered(self, inner: tuple[str]):
-		result = ''
 		current = iter(inner)
-		for _e in Expression.highlighted(self):
-			match (e := _e.specified):
-				case Other():
-					result += e.value
-				case Parameter() | Reference():
-					result += next(current)
-		return result
+		return ''.join(
+			e.value
+			if isinstance(e, Other)
+			else next(current)
+			for e in Expression.highlighted(self)
+		)
 
 	def rendered(self, parameters: 'Template.Parameters', templates: dict[str, 'Template'], left: str = '', right: str = ''):
-		match len(extracted := Expression.extracted(self)):
-			case 0:
-				return left + self.value + right
-			case _:
-				return Delimiter.expression.pattern.join([
-					left + self._rendered(inner) + right
-					for inner in zip(
-						*[
-							p.specified.rendered(parameters, templates)
-							for p in extracted
-						]
-					)
-				])
+		if not len(extracted := Expression.extracted(self)):
+			return left + self.value + right
+		else:
+			return Delimiter.expression.pattern.join([
+				left + self._rendered(inner) + right
+				for inner in zip(
+					*[
+						p.specified.rendered(parameters, templates)
+						for p in extracted
+					]
+				)
+			])
 
 
 class Template(Pattern):

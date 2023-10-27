@@ -40,7 +40,7 @@ class Pattern:
 			cls.expression.pattern
 		)
 
-	@property
+	@functools.cached_property
 	def groups(self):
 		if (match := self.expression.fullmatch(self.value)) is None:
 			raise ValueError
@@ -48,7 +48,7 @@ class Pattern:
 			raise ValueError
 		return result
 
-	@property
+	@functools.cached_property
 	def specified(self):
 		return self
 
@@ -136,7 +136,7 @@ class Expression(Pattern):
 	def name(self):
 		return Name(self.groups['Name'])
 
-	@property
+	@functools.cached_property
 	def specified(self):
 		for C in (Parameter, Reference):
 			try:
@@ -220,36 +220,39 @@ class Line(Pattern):
 				for e in highlighted
 			)
 
-	@property
+	@functools.cached_property
 	def specified(self):
 		try:
 			return Line.OneReference(self.value)
 		except ValueError:
 			return self
 
+	@functools.cache
 	def _rendered(self, inner: tuple[str]):
+		result: list[str] = []
 		current = iter(inner)
 		for _e in Expression.highlighted(self):
 			match (e := _e.specified):
 				case Other():
-					yield e.value
+					result.append(e.value)
 				case Parameter() | Reference():
-					yield next(current)
+					result.append(next(current))
+		return result
 
 	def rendered(self, parameters: 'Template.Parameters', templates: dict[str, 'Template'], left: str = '', right: str = ''):
-		match len(extracted := (*Expression.extracted(self),)):
+		match len(extracted := Expression.extracted(self)):
 			case 0:
 				return left + self.value + right
 			case _:
-				return Delimiter.expression.pattern.join(
+				return Delimiter.expression.pattern.join([
 					left + ''.join(self._rendered(inner)) + right
 					for inner in zip(
-						*(
+						*[
 							p.specified.rendered(parameters, templates)
 							for p in extracted
-						)
+						]
 					)
-				)
+				])
 
 
 class Template(Pattern):
@@ -258,15 +261,15 @@ class Template(Pattern):
 
 	expression = re.compile('(?:.*\n)*(?:.*)?')
 
-	@property
+	@functools.cached_property
 	def lines(self):
-		return (
+		return [
 			Line(l).specified
 			for l in self.value.split(Delimiter.expression.pattern)
-		)
+		]
 
 	def rendered(self, parameters: 'Template.Parameters', templates: dict[str, 'Template'] = {}, left: str = '', right: str = ''):
-		return Delimiter.expression.pattern.join(
+		return Delimiter.expression.pattern.join([
 			l.rendered(parameters, templates, left, right)
 			for l in self.lines
-		)
+		])

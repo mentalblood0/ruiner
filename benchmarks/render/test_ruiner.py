@@ -38,4 +38,8 @@ def templates(row: ruiner.Template):
 
 @pytest.mark.benchmark(group='render')
 def test_drunk_snail(benchmark, table: ruiner.Template, parameters: ruiner.Template.Parameters, templates: dict[str, ruiner.Template]):
-	benchmark(lambda: table.rendered(parameters, templates))
+	f = lambda: table.rendered(parameters, templates)
+	first = f()
+	assert len(first) == 221206
+	benchmark(f)
+	assert first == f()

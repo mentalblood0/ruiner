@@ -229,14 +229,14 @@ class Line(Pattern):
 
 	@functools.cache
 	def _rendered(self, inner: tuple[str]):
-		result: list[str] = []
+		result = ''
 		current = iter(inner)
 		for _e in Expression.highlighted(self):
 			match (e := _e.specified):
 				case Other():
-					result.append(e.value)
+					result += e.value
 				case Parameter() | Reference():
-					result.append(next(current))
+					result += next(current)
 		return result
 
 	def rendered(self, parameters: 'Template.Parameters', templates: dict[str, 'Template'], left: str = '', right: str = ''):
@@ -245,7 +245,7 @@ class Line(Pattern):
 				return left + self.value + right
 			case _:
 				return Delimiter.expression.pattern.join([
-					left + ''.join(self._rendered(inner)) + right
+					left + self._rendered(inner) + right
 					for inner in zip(
 						*[
 							p.specified.rendered(parameters, templates)

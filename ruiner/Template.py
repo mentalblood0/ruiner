@@ -29,7 +29,7 @@ class Pattern:
 	@classmethod
 	@property
 	def optional(cls):
-		return f'(?:{cls.degrouped})?'1
+		return f'(?:{cls.degrouped})?'
 
 	@classmethod
 	@property
@@ -53,14 +53,17 @@ class Pattern:
 		return self
 
 	@classmethod
+	@functools.lru_cache
 	def extracted(cls, source: 'Pattern'):
-		return (
+		return [
 			cls(source.value[m.start():m.end()])
 			for m in cls.expression.finditer(source.value)
-		)
+		]
 
 	@classmethod
+	@functools.lru_cache
 	def highlighted(cls, source: 'Pattern'):
+		result: list[Other | cls] = []
 		last = None
 		for m in cls.expression.finditer(source.value):
 			if (
@@ -70,14 +73,15 @@ class Pattern:
 				last is not None and
 				m.start() > (last_end := last.end())
 			):
-				yield Other(source.value[last_end:m.start()])
+				result.append(Other(source.value[last_end:m.start()]))
 			last = m
-			yield cls(source.value[m.start():m.end()])
+			result.append(cls(source.value[m.start():m.end()]))
 		if last is None:
-			yield Other(source.value)
+			result.append(Other(source.value))
 		else:
 			if (last_end := last.end()) != len(source.value):
-				yield Other(source.value[last_end:])
+				result.append(Other(source.value[last_end:]))
+		return result
 
 
 class Name(Pattern):

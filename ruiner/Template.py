@@ -169,29 +169,38 @@ class Parameter(Expression):
 					raise ValueError
 		except KeyError:
 			if not self.optional:
-				raise ValueError
+				yield ''
 
 class Reference(Expression):
 
 	expression = re.compile(Open.pattern + Spaces.pattern + Optional.optional + Expression.Type.Reference.pattern + Name.named + Spaces.pattern + Close.pattern)
 
 	def rendered(self, parameters: 'Template.Parameters', templates: dict[str, 'Template'], left: str = '', right: str = '') -> typing.Generator[str, typing.Any, typing.Any]:
-		try:
-			match (inner := parameters[self.name.value]):
-				case str():
-					raise ValueError
-				case list():
-					for p in inner:
-						match p:
-							case str():
-								raise ValueError
-							case _:
-								yield templates[self.name.value].rendered(p, templates, left, right)
-				case _:
-					yield templates[self.name.value].rendered(inner, templates, left, right)
-		except KeyError:
-			if not self.optional:
+
+		if self.optional:
+			if self.name.value not in parameters:
+				return ['']
+			elif self.name.value not in templates:
+				raise KeyError
+
+		match (
+			inner := (
+				parameters[self.name.value]
+				if self.name.value in parameters
+				else {}
+			)
+		):
+			case str():
 				raise ValueError
+			case list():
+				for p in inner:
+					match p:
+						case str():
+							raise ValueError
+						case _:
+							yield templates[self.name.value].rendered(p, templates, left, right)
+			case _:
+				yield templates[self.name.value].rendered(inner, templates, left, right)
 
 
 class Line(Pattern):

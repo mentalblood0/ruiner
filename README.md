@@ -1,3 +1,5 @@
+![tests](https://github.com/MentalBlood/ruiner/actions/workflows/python-package.yml/badge.svg)
+
 # 🔫 ruiner
 
 Pure Python object oriented implementation of template language originally presented in [drunk snail](https://github.com/mentalblood/drunk_snail)

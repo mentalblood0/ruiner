@@ -3,6 +3,8 @@ import typing
 import functools
 import dataclasses
 
+from .Regexp import Regexp
+
 
 
 @dataclasses.dataclass(frozen = True, kw_only = False)
@@ -10,54 +12,23 @@ class Pattern:
 
 	value : str
 
-	expression = re.compile('.*')
+	expression = Regexp(re.compile('.*'))
 
 	def __post_init__(self):
-		if not self.expression.fullmatch(self.value):
-			raise ValueError(f'Expression {self.expression} does not match value {self.value}')
-
-	@classmethod
-	@property
-	def pattern(cls):
-		return cls.degrouped
-
-	@classmethod
-	@property
-	def named(cls):
-		return f'(?P<{cls.__name__}>{cls.degrouped})'
-
-	@classmethod
-	@property
-	def optional(cls):
-		return f'(?:{cls.degrouped})?'
-
-	@classmethod
-	@property
-	def degrouped(cls):
-		return re.sub(
-			re.compile(r'\(\?P<\w+>([^\)]+)\)'),
-			r'\1',
-			cls.expression.pattern
-		)
+		if not self.expression.match(self.value):
+			raise ValueError(f'Expression "{self.expression}" does not match value "{self.value}"')
 
 	@functools.cached_property
 	def groups(self):
-		if (match := self.expression.fullmatch(self.value)) is None:
-			raise ValueError
-		if not (result := match.groupdict()):
-			raise ValueError
-		return result
-
-	@functools.cached_property
-	def specified(self):
-		return self
+		assert (match := self.expression.match(self.value)) is not None
+		return match.groupdict()
 
 	@classmethod
 	@functools.lru_cache
 	def extracted(cls, source: 'Pattern'):
 		return [
 			cls(source.value[m.start():m.end()])
-			for m in cls.expression.finditer(source.value)
+			for m in cls.expression.find(source.value)
 		]
 
 	@classmethod
@@ -65,7 +36,7 @@ class Pattern:
 	def highlighted(cls, source: 'Pattern'):
 		result: list[Other | cls] = []
 		last = None
-		for m in cls.expression.finditer(source.value):
+		for m in cls.expression.find(source.value):
 			if (
 				last is None and
 				m.start() > (last_end := 0)
@@ -75,7 +46,7 @@ class Pattern:
 			):
 				result.append(Other(source.value[last_end:m.start()]))
 			last = m
-			result.append(cls(source.value[m.start():m.end()]).specified)
+			result.append(cls(source.value[m.start():m.end()]))
 		if last is None:
 			result.append(Other(source.value))
 		else:
@@ -83,62 +54,67 @@ class Pattern:
 				result.append(Other(source.value[last_end:]))
 		return result
 
+	def __getitem__(self, name: str):
+		return self.groups[name]
+
+	def __contains__(self, name: str):
+		return name in self.groups and self.groups[name] is not None
+
 
 class Name(Pattern):
-	expression = re.compile('\\w+')
+	expression = Regexp(re.compile('\\w+'))
 
 class Spaces(Pattern):
-	expression = re.compile(' *')
+	expression = Regexp(re.compile(' *'))
 
 class Open(Pattern):
-	expression = re.compile('<!--')
+	expression = Regexp(re.compile('<!--'))
 
 class Close(Pattern):
-	expression = re.compile('-->')
+	expression = Regexp(re.compile('-->'))
 
 class Delimiter(Pattern):
-	expression = re.compile('\n')
+	expression = Regexp(re.compile('\n'))
 
 class Other(Pattern):
-
-	expression = re.compile('.+')
-
-	def rendered(self, parameters: 'Template.Parameters', templates: dict[str, 'Template']):
+	@property
+	def rendered(self):
 		return self.value
 
 
 class Operator(Pattern):
-
-	expression = re.compile(f'\\({Name.named}\\)')
-
-	@functools.cached_property
-	def name(self):
-		return self.groups['Name']
-
+	expression = Regexp(re.compile(f'\\({Name.expression}\\)'))
 
 class Optional(Operator):
-	expression = re.compile(r'\(optional\)')
+	expression = Regexp(re.compile(r'\(optional\)'))
+
 
 
 class Expression(Pattern):
 
 	class Type(Operator):
-
 		class Parameter(Operator):
-			expression = re.compile(r'\(param\)')
-
+			expression = Regexp(re.compile(r'\(param\)'))
 		class Reference(Operator):
-			expression = re.compile(r'\(ref\)')
+			expression = Regexp(re.compile(r'\(ref\)'))
 
-	expression = re.compile(Open.pattern + Spaces.pattern + Optional.optional + Type.pattern + Name.named + Spaces.pattern + Close.pattern)
+	expression = Regexp.sequence(
+		Open.expression,
+		Spaces.expression,
+		Optional.expression('optional').optional,
+		Type.expression.degrouped,
+		Name.expression('name'),
+		Spaces.expression,
+		Close.expression
+	)
 
 	@functools.cached_property
 	def name(self):
-		return Name(self.groups['Name'])
+		return Name(self['name'])
 
-	@functools.cached_property
+	@property
 	def optional(self):
-		return len(Optional.extracted(self))
+		return 'optional' in self
 
 	@functools.cached_property
 	def specified(self):
@@ -150,19 +126,22 @@ class Expression(Pattern):
 		raise ValueError
 
 class Parameter(Expression):
-
-	expression = re.compile(Open.pattern + Spaces.pattern + Optional.optional + Expression.Type.Parameter.pattern + Name.named + Spaces.pattern + Close.pattern)
-
+	expression = Regexp.sequence(
+		Open.expression,
+		Spaces.expression,
+		Optional.expression('optional').optional,
+		Expression.Type.Parameter.expression,
+		Name.expression('name'),
+		Spaces.expression,
+		Close.expression
+	)
 	def rendered(self, parameters: 'Template.Parameters', templates: dict[str, 'Template']):
 		try:
 			match (result := parameters[self.name.value]):
 				case list():
 					for r in result:
-						match r:
-							case str():
-								yield r
-							case _:
-								raise ValueError
+						assert isinstance(r, str)
+						yield str(r)
 				case str():
 					yield result
 				case _:
@@ -172,9 +151,15 @@ class Parameter(Expression):
 				yield ''
 
 class Reference(Expression):
-
-	expression = re.compile(Open.pattern + Spaces.pattern + Optional.optional + Expression.Type.Reference.pattern + Name.named + Spaces.pattern + Close.pattern)
-
+	expression = Regexp.sequence(
+		Open.expression,
+		Spaces.expression,
+		Optional.expression('optional').optional,
+		Expression.Type.Reference.expression,
+		Name.expression('name'),
+		Spaces.expression,
+		Close.expression
+	)
 	def rendered(self, parameters: 'Template.Parameters', templates: dict[str, 'Template'], left: str = '', right: str = '') -> typing.Generator[str, typing.Any, typing.Any]:
 
 		if self.optional:
@@ -187,18 +172,15 @@ class Reference(Expression):
 			inner := (
 				parameters[self.name.value]
 				if self.name.value in parameters
-				else {}
+				else Template.Parameters({})
 			)
 		):
 			case str():
 				raise ValueError
 			case list():
 				for p in inner:
-					match p:
-						case str():
-							raise ValueError
-						case _:
-							yield templates[self.name.value].rendered(p, templates, left, right)
+					assert not isinstance(p, str)
+					yield templates[self.name.value].rendered(p, templates, left, right)
 			case _:
 				yield templates[self.name.value].rendered(inner, templates, left, right)
 
@@ -207,27 +189,27 @@ class Line(Pattern):
 
 	class OneReference(Pattern):
 
-		expression = re.compile(Other.optional + Reference.pattern + Other.optional)
+		expression = Regexp.sequence(
+			Other.expression.optional('left'),
+			Reference.expression('reference'),
+			Other.expression.optional('right')
+		)
+
+		@functools.cached_property
+		def left(self):
+			return Other(self['left']).rendered
+
+		@functools.cached_property
+		def reference(self):
+			return Reference(self['reference'])
+
+		@functools.cached_property
+		def right(self):
+			return Other(self['right']).rendered
 
 		def rendered(self, parameters: 'Template.Parameters', templates: dict[str, 'Template'], left: str = '', right: str = ''):
-
-			highlighted = Expression.highlighted(self)
-
-			match highlighted[0]:
-				case Other():
-					_left = highlighted[0].rendered(parameters, templates)
-					r = 1
-				case _:
-					_left = ''
-					r = 0
-			match highlighted[-1]:
-				case Other():
-					_right = highlighted[-1].rendered(parameters, templates)
-				case _:
-					_right = ''
-
-			return Delimiter.expression.pattern.join(
-				highlighted[r].rendered(parameters, templates, left + _left, _right + right)
+			return str(Delimiter.expression).join(
+				self.reference.rendered(parameters, templates, left + self.left, self.right + right)
 			)
 
 	@functools.cached_property
@@ -237,7 +219,6 @@ class Line(Pattern):
 		except ValueError:
 			return self
 
-	@functools.cache
 	def _rendered(self, inner: tuple[str]):
 		current = iter(inner)
 		return ''.join(
@@ -251,7 +232,7 @@ class Line(Pattern):
 		if not len(extracted := Expression.extracted(self)):
 			return left + self.value + right
 		else:
-			return Delimiter.expression.pattern.join([
+			return str(Delimiter.expression).join([
 				left + self._rendered(inner) + right
 				for inner in zip(
 					*[
@@ -266,17 +247,17 @@ class Template(Pattern):
 
 	Parameters = dict[str, typing.Union[str, list[str], 'Parameters', list['Parameters']]]
 
-	expression = re.compile('(?:.*\n)*(?:.*)?')
+	expression = Regexp(re.compile('(?:.*\n)*(?:.*)?'))
 
 	@functools.cached_property
 	def lines(self):
 		return [
 			Line(l).specified
-			for l in self.value.split(Delimiter.expression.pattern)
+			for l in self.value.split(str(Delimiter.expression))
 		]
 
 	def rendered(self, parameters: 'Template.Parameters', templates: dict[str, 'Template'] = {}, left: str = '', right: str = ''):
-		return Delimiter.expression.pattern.join([
+		return str(Delimiter.expression).join([
 			l.rendered(parameters, templates, left, right)
 			for l in self.lines
 		])

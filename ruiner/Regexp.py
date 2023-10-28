@@ -23,15 +23,8 @@ class Regexp:
 		return self.value.finditer(text)
 
 	@property
-	def parenthesed(self):
-		if str(self.degrouped).startswith('(?:'):
-			return str(self)
-		else:
-			return Regexp(re.compile(f'(?:{self})'))
-
-	@property
 	def optional(self):
-		return Regexp(re.compile(f'{self.parenthesed}?'))
+		return Regexp(re.compile(f'(?:{self})?'))
 
 	@property
 	def degrouped(self):

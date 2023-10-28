@@ -102,7 +102,7 @@ class Expression(Pattern):
 		Open.expression,
 		Spaces.expression,
 		Optional.expression('optional').optional,
-		Type.expression.degrouped,
+		Type.expression,
 		Name.expression('name'),
 		Spaces.expression,
 		Close.expression

@@ -63,21 +63,22 @@ def test_ref():
 	assert result == 'Hello, username!\nNice to meet you!\nNice to eat you!\nNice to split you!\n'
 
 
-# def test_consicutive_lines(number: int = 2):
-
-# 	for i in range(number):
-# 		addTemplate(f'test_consicutive_lines_{i}', str(i))
-
-# 	ruiner.Template(
-# 		''.join(
-# 			f'    <!-- (ref)test_consicutive_lines_{i} -->\n'
-# 			for i in range(number)
-# 		),
-# 		{}
-# 	) == ''.join(
-# 		f'    {i}\n'
-# 		for i in range(number)
-# 	)
+def test_consicutive_lines(number: int = 2):
+	assert ruiner.Template(
+		''.join(
+			f'    <!-- (ref)test_consicutive_lines_{i} -->\n'
+			for i in range(number)
+		)
+	).rendered(
+		parameters = {},
+		templates  = {
+			f'test_consicutive_lines_{i}': ruiner.Template(str(i))
+			for i in range(number)
+		}
+	) == ''.join(
+		f'    {i}\n'
+		for i in range(number)
+	)
 
 
 def test_optional_param():

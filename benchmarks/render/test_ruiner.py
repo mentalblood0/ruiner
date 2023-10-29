@@ -1,6 +1,8 @@
 import pytest
 import ruiner
+import typing
 import pathlib
+from pytest_benchmark import fixture
 
 from ..common import *
 
@@ -36,8 +38,7 @@ def templates(row: ruiner.Template):
 	return {'Row': row}
 
 
-@pytest.mark.benchmark(group='render')
-def test_drunk_snail(benchmark, table: ruiner.Template, parameters: ruiner.Template.Parameters, templates: dict[str, ruiner.Template]):
+def test_drunk_snail(benchmark: typing.Callable[[type[pytest.FixtureRequest]], fixture.BenchmarkFixture], table: ruiner.Template, parameters: ruiner.Template.Parameters, templates: dict[str, ruiner.Template]):
 	f = lambda: table.rendered(parameters, templates)
 	first = f()
 	assert len(first) == 220806

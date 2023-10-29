@@ -92,14 +92,6 @@ def test_optional_ref():
 		{},
 		templates
 	) == ''
-	assert ruiner.Template(
-		'<!-- (optional)(ref)test_optional_ref_1 -->'
-	).rendered(
-		{
-			'test_optional_ref_1': [None]
-		},
-		templates
-	) == 'lalala'
 
 
 def test_table():

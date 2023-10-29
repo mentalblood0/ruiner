@@ -1,4 +1,6 @@
-![tests](https://github.com/MentalBlood/ruiner/actions/workflows/python-package.yml/badge.svg)
+![lint](https://github.com/MentalBlood/ruiner/actions/workflows/lint.yml/badge.svg)
+![complexity](https://github.com/MentalBlood/ruiner/actions/workflows/complexity.yml/badge.svg)
+![tests](https://github.com/MentalBlood/ruiner/actions/workflows/tests.yml/badge.svg)
 
 # 🔫 ruiner
 

@@ -48,7 +48,6 @@ class Pattern:
 			last = m
 			result.append(cls(source.value[m.start():m.end()]))
 		if last is None:
-			test = 0
 			result.append(Other(source.value))
 		else:
 			if (last_end := last.end()) != len(source.value):

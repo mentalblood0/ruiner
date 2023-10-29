@@ -30,7 +30,7 @@ jobs:
     - name: Check complexity with xenon
       run: |
         python -m pip install --upgrade pip xenon
-        xenon --max-absolute A .ruiner
+        xenon --max-absolute A .
     - name: Test with pytest
       run: |
         python -m pip install --upgrade pip pytest pytest-benchmark

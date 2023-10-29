@@ -126,6 +126,7 @@ class Expression(Pattern):
 		raise ValueError
 
 class Parameter(Expression):
+
 	expression = Regexp.sequence(
 		Open.expression,
 		Spaces.expression,
@@ -135,22 +136,25 @@ class Parameter(Expression):
 		Spaces.expression,
 		Close.expression
 	)
-	def rendered(self, parameters: 'Template.Parameters', templates: dict[str, 'Template']):
+
+	def _rendered(self, parameters: str | list[str] | list['Template.Parameters']):
+		match parameters:
+			case list():
+				return parameters
+			case str():
+				return [parameters]
+
+	def rendered(self, parameters: 'Template.Parameters', _: dict[str, 'Template']):
 		try:
-			match (result := parameters[self.name.value]):
-				case list():
-					for r in result:
-						assert isinstance(r, str)
-						yield str(r)
-				case str():
-					yield result
-				case _:
-					raise ValueError
+			assert isinstance(p := parameters[self.name.value], str) or isinstance(p, list)
+			return self._rendered(p)
 		except KeyError:
 			if not self.optional:
-				yield ''
+				return ['']
+			return list[str]()
 
 class Reference(Expression):
+
 	expression = Regexp.sequence(
 		Open.expression,
 		Spaces.expression,
@@ -160,29 +164,39 @@ class Reference(Expression):
 		Spaces.expression,
 		Close.expression
 	)
-	def rendered(self, parameters: 'Template.Parameters', templates: dict[str, 'Template'], left: str = '', right: str = '') -> typing.Generator[str, typing.Any, typing.Any]:
 
-		if self.optional:
-			if self.name.value not in parameters:
-				return ['']
-			elif self.name.value not in templates:
-				raise KeyError
+	def inner(self, parameters: 'Template.Parameters'):
+		if self.name.value in parameters:
+			return parameters[self.name.value]
+		else:
+			return Template.Parameters({})
 
-		match (
-			inner := (
-				parameters[self.name.value]
-				if self.name.value in parameters
-				else Template.Parameters({})
-			)
-		):
+	def _rendered_optional(self, parameters: 'Template.Parameters', templates: dict[str, 'Template']):
+		if self.name.value not in parameters:
+			return ['']
+		elif self.name.value not in templates:
+			raise KeyError
+
+	def _rendered(self, parameters: 'Template.Parameters', templates: dict[str, 'Template'], left: str = '', right: str = ''):
+		match (inner := self.inner(parameters)):
 			case str():
 				raise ValueError
 			case list():
-				for p in inner:
-					assert not isinstance(p, str)
-					yield templates[self.name.value].rendered(p, templates, left, right)
+				return [
+					templates[self.name.value].rendered(p, templates, left, right)
+					for p in inner
+					if not isinstance(p, str)
+				]
 			case _:
-				yield templates[self.name.value].rendered(inner, templates, left, right)
+				return [templates[self.name.value].rendered(inner, templates, left, right)]
+
+	def rendered(self, parameters: 'Template.Parameters', templates: dict[str, 'Template'], left: str = '', right: str = '') -> list[str]:
+		if (
+			self.optional and
+			(result := self._rendered_optional(parameters, templates)) is not None
+		):
+			return result
+		return self._rendered(parameters, templates, left, right)
 
 
 class Line(Pattern):

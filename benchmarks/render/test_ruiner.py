@@ -1,22 +1,37 @@
 import pytest
 import ruiner
 import typing
-import pathlib
 from pytest_benchmark import fixture
 
-from ..common import *
-
-
-
-@pytest.fixture
-def row(directory: pathlib.Path):
-	return ruiner.Template((directory / 'Row.xml').read_text())
 
 
 @pytest.fixture
-def table(directory: pathlib.Path):
-	return ruiner.Template((directory / 'Table.xml').read_text())
+def table_width():
+	return 100
 
+@pytest.fixture
+def table_height():
+	return 100
+
+@pytest.fixture
+def cell_value(table_width: int) -> typing.Callable[[int, int], str]:
+	return lambda x, y: str(x + y * table_width)
+
+@pytest.fixture
+def row():
+	return ruiner.Template(
+		'<tr>\n'
+		'    <td><!-- (param)cell --></td>\n'
+		'</tr>'
+	)
+
+@pytest.fixture
+def table():
+	return ruiner.Template(
+		'<table>\n'
+		'    <!-- (ref)Row -->\n'
+		'</table>'
+	)
 
 @pytest.fixture
 def parameters(table_width: int, table_height: int, cell_value: typing.Callable[[int, int], str]) -> ruiner.Template.Parameters:
@@ -31,7 +46,6 @@ def parameters(table_width: int, table_height: int, cell_value: typing.Callable[
 			for y in range(table_height)
 		]
 	}
-
 
 @pytest.fixture
 def templates(row: ruiner.Template):

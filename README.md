@@ -1,12 +1,13 @@
-![lint](https://github.com/MentalBlood/ruiner/actions/workflows/lint.yml/badge.svg)
+<h1 align="center">🔫 ruiner</h1>
 
-![typing](https://github.com/MentalBlood/ruiner/actions/workflows/typing.yml/badge.svg)
+<h3 align="center">safe and clean template engine</h3>
 
-![complexity](https://github.com/MentalBlood/ruiner/actions/workflows/complexity.yml/badge.svg)
-
-![tests](https://github.com/MentalBlood/ruiner/actions/workflows/tests.yml/badge.svg)
-
-# 🔫 ruiner
+<p align="center">
+<a href="https://github.com/psf/black/actions"><img alt="Lint Status" src="https://github.com/MentalBlood/ruiner/actions/workflows/lint.yml/badge.svg"></a>
+<a href="https://github.com/psf/black/actions"><img alt="Typing Status" src="https://github.com/MentalBlood/ruiner/actions/workflows/typing.yml/badge.svg"></a>
+<a href="https://github.com/psf/black/actions"><img alt="Complexity Status" src="https://github.com/MentalBlood/ruiner/actions/workflows/complexity.yml/badge.svg"></a>
+<a href="https://github.com/psf/black/actions"><img alt="Tests Status" src="https://github.com/MentalBlood/ruiner/actions/workflows/tests.yml/badge.svg"></a>
+</p>
 
 Pure Python object oriented implementation of template language originally presented in [drunk snail](https://github.com/mentalblood/drunk_snail)
 

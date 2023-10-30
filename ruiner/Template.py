@@ -35,24 +35,17 @@ class Pattern:
 	@functools.lru_cache
 	def highlighted(cls, source: 'Pattern'):
 		result: list[Other | cls] = []
-		last = None
+		last_end                  = 0
 		for m in cls.expression.find(source.value):
-			if (
-				last is None and
-				m.start() > (last_end := 0)
-			) or (
-				last is not None and
-				m.start() > (last_end := last.end())
-			):
-				result.append(Other(source.value[last_end:m.start()]))
-			last = m
+			result.append(Other(source.value[last_end:m.start()]))
+			last_end = m.end()
 			result.append(cls(source.value[m.start():m.end()]))
-		if last is None:
-			result.append(Other(source.value))
-		else:
-			if (last_end := last.end()) != len(source.value):
-				result.append(Other(source.value[last_end:]))
-		return result
+		result.append(Other(source.value[last_end:]))
+		return [
+			r
+			for r in result
+			if r.value
+		]
 
 	def __getitem__(self, name: str):
 		return self.groups[name]

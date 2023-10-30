@@ -1,5 +1,9 @@
 ![lint](https://github.com/MentalBlood/ruiner/actions/workflows/lint.yml/badge.svg)
+
+![typing](https://github.com/MentalBlood/ruiner/actions/workflows/typing.yml/badge.svg)
+
 ![complexity](https://github.com/MentalBlood/ruiner/actions/workflows/complexity.yml/badge.svg)
+
 ![tests](https://github.com/MentalBlood/ruiner/actions/workflows/tests.yml/badge.svg)
 
 # 🔫 ruiner

@@ -62,10 +62,7 @@ def templates(row: ruiner.Template):
 
 
 def test_drunk_snail(
-    benchmark:  typing.Callable[
-        [type[pytest.FixtureRequest]],
-        fixture.BenchmarkFixture
-    ],
+    benchmark:  fixture.BenchmarkFixture,
     table:      ruiner.Template,
     parameters: ruiner.Template.Parameters,
     templates:  dict[str, ruiner.Template]

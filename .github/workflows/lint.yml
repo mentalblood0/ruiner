@@ -28,4 +28,4 @@ jobs:
         python -m pip install --upgrade pip flake8
     - name: Check for errors with flake8
       run: |
-        flake8
+        flake8 --max-line-length=88 --extend-ignore=E203

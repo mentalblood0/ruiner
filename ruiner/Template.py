@@ -8,16 +8,14 @@ from .Regexp import Regexp
 
 @dataclasses.dataclass(frozen=True, kw_only=False)
 class Pattern:
-
     value: str
 
-    expression = Regexp(re.compile('.*'))
+    expression = Regexp(re.compile(".*"))
 
     def __post_init__(self):
         if not self.expression.match(self.value):
             raise ValueError(
-                f'Expression "{self.expression}"'
-                f'does not match value "{self.value}"'
+                f'Expression "{self.expression}"' f'does not match value "{self.value}"'
             )
 
     @functools.cached_property
@@ -27,27 +25,23 @@ class Pattern:
 
     @classmethod
     @functools.lru_cache
-    def extracted(cls, source: 'Pattern'):
+    def extracted(cls, source: "Pattern"):
         return [
-            cls(source.value[m.start():m.end()])
+            cls(source.value[m.start() : m.end()])
             for m in cls.expression.find(source.value)
         ]
 
     @classmethod
     @functools.lru_cache
-    def highlighted(cls, source: 'Pattern'):
+    def highlighted(cls, source: "Pattern"):
         result: list[Other | cls] = []
         last_end = 0
         for m in cls.expression.find(source.value):
-            result.append(Other(source.value[last_end:m.start()]))
+            result.append(Other(source.value[last_end : m.start()]))
             last_end = m.end()
-            result.append(cls(source.value[m.start():m.end()]))
+            result.append(cls(source.value[m.start() : m.end()]))
         result.append(Other(source.value[last_end:]))
-        return [
-            r
-            for r in result
-            if r.value
-        ]
+        return [r for r in result if r.value]
 
     def __getitem__(self, name: str):
         return self.groups[name]
@@ -57,23 +51,23 @@ class Pattern:
 
 
 class Name(Pattern):
-    expression = Regexp(re.compile('\\w+'))
+    expression = Regexp(re.compile("\\w+"))
 
 
 class Spaces(Pattern):
-    expression = Regexp(re.compile(' *'))
+    expression = Regexp(re.compile(" *"))
 
 
 class Open(Pattern):
-    expression = Regexp(re.compile('<!--'))
+    expression = Regexp(re.compile("<!--"))
 
 
 class Close(Pattern):
-    expression = Regexp(re.compile('-->'))
+    expression = Regexp(re.compile("-->"))
 
 
 class Delimiter(Pattern):
-    expression = Regexp(re.compile('\n'))
+    expression = Regexp(re.compile("\n"))
 
 
 class Other(Pattern):
@@ -83,40 +77,38 @@ class Other(Pattern):
 
 
 class Operator(Pattern):
-    expression = Regexp(re.compile(f'\\({Name.expression}\\)'))
+    expression = Regexp(re.compile(f"\\({Name.expression}\\)"))
 
 
 class Optional(Operator):
-    expression = Regexp(re.compile(r'\(optional\)'))
+    expression = Regexp(re.compile(r"\(optional\)"))
 
 
 class Expression(Pattern):
-
     class Type(Operator):
-
         class Parameter(Operator):
-            expression = Regexp(re.compile(r'\(param\)'))
+            expression = Regexp(re.compile(r"\(param\)"))
 
         class Reference(Operator):
-            expression = Regexp(re.compile(r'\(ref\)'))
+            expression = Regexp(re.compile(r"\(ref\)"))
 
     expression = Regexp.sequence(
         Open.expression,
         Spaces.expression,
-        Optional.expression('optional').optional,
+        Optional.expression("optional").optional,
         Type.expression,
-        Name.expression('name'),
+        Name.expression("name"),
         Spaces.expression,
-        Close.expression
+        Close.expression,
     )
 
     @functools.cached_property
     def name(self):
-        return Name(self['name'])
+        return Name(self["name"])
 
     @property
     def optional(self):
-        return 'optional' in self
+        return "optional" in self
 
     @functools.cached_property
     def specified(self):
@@ -129,105 +121,85 @@ class Expression(Pattern):
 
 
 class Parameter(Expression):
-
     expression = Regexp.sequence(
         Open.expression,
         Spaces.expression,
-        Optional.expression('optional').optional,
+        Optional.expression("optional").optional,
         Expression.Type.Parameter.expression,
-        Name.expression('name'),
+        Name.expression("name"),
         Spaces.expression,
-        Close.expression
+        Close.expression,
     )
 
-    def _rendered(
-            self,
-            parameters: str | list[str] | list['Template.Parameters']
-    ):
+    def _rendered(self, parameters: str | list[str] | list["Template.Parameters"]):
         match parameters:
             case list():
                 return parameters
             case str():
                 return [parameters]
 
-    def rendered(
-            self,
-            parameters: 'Template.Parameters', _: dict[str, 'Template']
-    ):
+    def rendered(self, parameters: "Template.Parameters", _: dict[str, "Template"]):
         try:
             assert isinstance(p := parameters[self.name.value], str | list)
             return self._rendered(p)
         except KeyError:
             if not self.optional:
-                return ['']
+                return [""]
             return list[str]()
 
 
 class Reference(Expression):
-
     expression = Regexp.sequence(
         Open.expression,
         Spaces.expression,
-        Optional.expression('optional').optional,
+        Optional.expression("optional").optional,
         Expression.Type.Reference.expression,
-        Name.expression('name'),
+        Name.expression("name"),
         Spaces.expression,
-        Close.expression
+        Close.expression,
     )
 
-    def inner(self, parameters: 'Template.Parameters'):
+    def inner(self, parameters: "Template.Parameters"):
         if self.name.value in parameters:
             return parameters[self.name.value]
         else:
             return Template.Parameters({})
 
     def _rendered_optional(
-            self,
-            parameters: 'Template.Parameters',
-            templates:   dict[str, 'Template']
+        self, parameters: "Template.Parameters", templates: dict[str, "Template"]
     ):
         if self.name.value not in parameters:
-            return ['']
+            return [""]
         elif self.name.value not in templates:
             raise KeyError
 
     def _rendered(
-            self,
-            parameters: 'Template.Parameters',
-            templates:   dict[str, 'Template'],
-            left:        str = '',
-            right:       str = ''
+        self,
+        parameters: "Template.Parameters",
+        templates: dict[str, "Template"],
+        left: str = "",
+        right: str = "",
     ):
         match (inner := self.inner(parameters)):
             case str():
                 raise ValueError
             case list():
                 return [
-                    templates[self.name.value].rendered(
-                        p,
-                        templates,
-                        left,
-                        right
-                    )
+                    templates[self.name.value].rendered(p, templates, left, right)
                     for p in inner
                     if not isinstance(p, str)
                 ]
             case _:
                 return [
-                    templates[self.name.value].rendered(
-                        inner,
-                        templates,
-                        left,
-                        right
-                    )
+                    templates[self.name.value].rendered(inner, templates, left, right)
                 ]
 
     def rendered(
-            self,
-            parameters: 'Template.Parameters',
-            templates:   dict[str, 'Template'],
-            left:        str = '',
-            right:       str = ''
+        self,
+        parameters: "Template.Parameters",
+        templates: dict[str, "Template"],
+        left: str = "",
+        right: str = "",
     ) -> list[str]:
         result = self._rendered_optional(parameters, templates)
         if self.optional and result is not None:
@@ -236,40 +208,35 @@ class Reference(Expression):
 
 
 class Line(Pattern):
-
     class OneReference(Pattern):
-
         expression = Regexp.sequence(
-            Other.expression.optional('left'),
-            Reference.expression('reference'),
-            Other.expression.optional('right')
+            Other.expression.optional("left"),
+            Reference.expression("reference"),
+            Other.expression.optional("right"),
         )
 
         @functools.cached_property
         def left(self):
-            return Other(self['left']).rendered
+            return Other(self["left"]).rendered
 
         @functools.cached_property
         def reference(self):
-            return Reference(self['reference'])
+            return Reference(self["reference"])
 
         @functools.cached_property
         def right(self):
-            return Other(self['right']).rendered
+            return Other(self["right"]).rendered
 
         def rendered(
             self,
-            parameters: 'Template.Parameters',
-            templates:   dict[str, 'Template'],
-            left:        str = '',
-            right:       str = ''
+            parameters: "Template.Parameters",
+            templates: dict[str, "Template"],
+            left: str = "",
+            right: str = "",
         ):
             return str(Delimiter.expression).join(
                 self.reference.rendered(
-                    parameters,
-                    templates,
-                    left + self.left,
-                    self.right + right
+                    parameters, templates, left + self.left, self.right + right
                 )
             )
 
@@ -282,63 +249,54 @@ class Line(Pattern):
 
     def _rendered(self, inner: tuple[str]):
         current = iter(inner)
-        return ''.join(
-            e.value
-            if isinstance(e, Other)
-            else next(current)
+        return "".join(
+            e.value if isinstance(e, Other) else next(current)
             for e in Expression.highlighted(self)
         )
 
     def rendered(
         self,
-        parameters: 'Template.Parameters',
-        templates:   dict[str, 'Template'],
-        left:        str = '',
-        right:       str = ''
+        parameters: "Template.Parameters",
+        templates: dict[str, "Template"],
+        left: str = "",
+        right: str = "",
     ):
         if not len(extracted := Expression.extracted(self)):
             return left + self.value + right
         else:
-            return str(Delimiter.expression).join([
-                left + self._rendered(inner) + right
-                for inner in zip(
-                    *[
-                        p.specified.rendered(parameters, templates)
-                        for p in extracted
-                    ]
-                )
-            ])
+            return str(Delimiter.expression).join(
+                [
+                    left + self._rendered(inner) + right
+                    for inner in zip(
+                        *[
+                            p.specified.rendered(parameters, templates)
+                            for p in extracted
+                        ]
+                    )
+                ]
+            )
 
 
 class Template(Pattern):
-
     Parameters = dict[
-        str,
-        typing.Union[
-            str,
-            list[str],
-            'Parameters',
-            list['Parameters']
-        ]
+        str, typing.Union[str, list[str], "Parameters", list["Parameters"]]
     ]
 
-    expression = Regexp(re.compile('(?:.*\n)*(?:.*)?'))
+    expression = Regexp(re.compile("(?:.*\n)*(?:.*)?"))
 
     @functools.cached_property
     def lines(self):
         return [
-            Line(line).specified
-            for line in self.value.split(str(Delimiter.expression))
+            Line(line).specified for line in self.value.split(str(Delimiter.expression))
         ]
 
     def rendered(
         self,
-        parameters: 'Template.Parameters',
-        templates:   dict[str, 'Template'] = {},
-        left:        str = '',
-        right:       str = ''
+        parameters: "Template.Parameters",
+        templates: dict[str, "Template"] = {},
+        left: str = "",
+        right: str = "",
     ):
-        return str(Delimiter.expression).join([
-            line.rendered(parameters, templates, left, right)
-            for line in self.lines
-        ])
+        return str(Delimiter.expression).join(
+            [line.rendered(parameters, templates, left, right) for line in self.lines]
+        )

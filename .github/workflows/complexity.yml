@@ -1,6 +1,6 @@
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
 
-name: Absolute complexity mark A by xenon
+name: xenon --max-absolute A .
 
 on:
   push:

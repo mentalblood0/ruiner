@@ -1,1 +1,3 @@
-from .Template import Template as Template
+from .Template import Template
+
+__all__ = ['Template',]

@@ -23,7 +23,9 @@ jobs:
       uses: actions/setup-python@v3
       with:
         python-version: ${{ matrix.python-version }}
-    - name: Check complexity with xenon
+    - name: Install dependencies
       run: |
         python -m pip install --upgrade pip xenon
+    - name: Check complexity with xenon
+      run: |
         xenon --max-absolute A .

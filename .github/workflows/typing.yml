@@ -25,7 +25,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip pyright
+        python -m pip install --upgrade pip pyright pytest pytest-benchmark
     - name: Test with pyright
       run: |
         pyright

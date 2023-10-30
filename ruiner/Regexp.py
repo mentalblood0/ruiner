@@ -8,11 +8,7 @@ class Regexp:
 
     @classmethod
     def sequence(cls, *sequence: "Regexp"):
-        assert len(sequence) > 1
-        result = sequence[0]
-        for e in sequence[1:]:
-            result += e
-        return result
+        return Regexp(re.compile("".join([str(e) for e in sequence])))
 
     def match(self, text: str):
         return self.value.fullmatch(text)

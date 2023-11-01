@@ -1,6 +1,7 @@
 import ruiner
 import pytest
 import itertools
+import dataclasses
 
 
 class Syntax:
@@ -34,38 +35,32 @@ class TestLists:
         name: list[str] = ["1", "-", "1l"]
 
 
-def Line(
-    type: str,
-    name: str,
-    other_left: str = "",
-    open_tag: str = Syntax.open,
-    gap_left: str = " ",
-    flag: str = "",
-    gap_right: str = " ",
-    close_tag: str = Syntax.close,
-    other_right: str = "",
-):
-    return "".join(
-        [
-            other_left,
-            open_tag,
-            gap_left,
-            flag,
-            type,
-            name,
-            gap_right,
-            close_tag,
-            other_right,
-        ]
-    )
+@dataclasses.dataclass(frozen=True, kw_only=True)
+class Line:
+    type: str
+    name: str
+    other_left: str = ""
+    open_tag: str = Syntax.open
+    gap_left: str = " "
+    flag: str = ""
+    gap_right: str = " "
+    close_tag: str = Syntax.close
+    other_right: str = ""
 
-
-def ParametersLine(*args: str, name: str = "p", **kwargs: str):
-    return Line(type=Syntax.param, name=name, *args, **kwargs)
-
-
-def ReferenceLine(*args: str, name: str = "R", **kwargs: str):
-    return Line(type=Syntax.ref, name=name, *args, **kwargs)
+    def __str__(self):
+        return "".join(
+            [
+                self.other_left,
+                self.open_tag,
+                self.gap_left,
+                self.flag,
+                self.type,
+                self.name,
+                self.gap_right,
+                self.close_tag,
+                self.other_right,
+            ]
+        )
 
 
 @pytest.mark.parametrize(
@@ -88,13 +83,17 @@ def test_param_valid(
     # exit()
     # assert False
     result = ruiner.Template(
-        ParametersLine(
-            other_left=other_left,
-            gap_left=gap_left,
-            gap_right=gap_right,
-            other_right=other_right,
+        str(
+            Line(
+                type=Syntax.param,
+                name="p",
+                other_left=other_left,
+                gap_left=gap_left,
+                gap_right=gap_right,
+                other_right=other_right,
+            )
         )
-    ).rendered({"p": value})
+    ).rendered({"p": value}, {})
     match value:
         case str():
             assert result == f"{other_left}{value}{other_right}"
@@ -122,14 +121,17 @@ def test_param_invalid(
 ):
     assert (
         ruiner.Template(
-            line := ParametersLine(
-                open_tag=open_tag,
-                other_left=other_left,
-                gap_left=gap_left,
-                name=name,
-                gap_right=gap_right,
-                other_right=other_right,
-                close_tag=close_tag,
+            line := str(
+                Line(
+                    type=Syntax.param,
+                    open_tag=open_tag,
+                    other_left=other_left,
+                    gap_left=gap_left,
+                    name=name,
+                    gap_right=gap_right,
+                    other_right=other_right,
+                    close_tag=close_tag,
+                )
             )
         ).rendered({name: value})
         == f"{line}"
@@ -151,12 +153,15 @@ def test_param_invalid(
 def test_multiple_param_valid(lines_args: list[str]):
     assert ruiner.Template(
         "\n".join(
-            ParametersLine(
-                name=f"p{i}",
-                other_left=a[1],
-                gap_left=a[2],
-                gap_right=a[3],
-                other_right=a[4],
+            str(
+                Line(
+                    type=Syntax.param,
+                    name=f"p{i}",
+                    other_left=a[1],
+                    gap_left=a[2],
+                    gap_right=a[3],
+                    other_right=a[4],
+                )
             )
             for i, a in enumerate(lines_args)
         )
@@ -184,11 +189,15 @@ def test_ref_valid(
     other_right: str,
 ):
     result = ruiner.Template(
-        ReferenceLine(
-            other_left=other_left,
-            gap_left=gap_left,
-            gap_right=gap_right,
-            other_right=other_right,
+        str(
+            Line(
+                type=Syntax.ref,
+                name="R",
+                other_left=other_left,
+                gap_left=gap_left,
+                gap_right=gap_right,
+                other_right=other_right,
+            )
         )
     ).rendered({"R": {"p": value}}, {"R": ruiner.Template(ref)})
     match value:

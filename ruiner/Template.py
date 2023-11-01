@@ -26,11 +26,10 @@ class Pattern:
     @classmethod
     @functools.lru_cache
     def extracted(cls, source: "Pattern"):
-        result = [
+        return [
             cls(source.value[m.start() : m.end()])
             for m in cls.expression.find(source.value)
         ]
-        return result
 
     @classmethod
     @functools.lru_cache
@@ -38,9 +37,11 @@ class Pattern:
         result: list[Other | cls] = []
         last_end = 0
         for m in cls.expression.find(source.value):
-            result.append(Other(source.value[last_end : m.start()]))
+            result += [
+                Other(source.value[last_end : m.start()]),
+                cls(source.value[m.start() : m.end()]),
+            ]
             last_end = m.end()
-            result.append(cls(source.value[m.start() : m.end()]))
         result.append(Other(source.value[last_end:]))
         return [r for r in result if r.value]
 
@@ -295,10 +296,11 @@ class Template(Pattern):
     def rendered(
         self,
         parameters: "Template.Parameters",
-        templates: dict[str, "Template"] = {},
+        templates: dict[str, "Template"] | None = None,
         left: str = "",
         right: str = "",
     ):
+        templates = templates or {}
         return str(Delimiter.expression).join(
             [line.rendered(parameters, templates, left, right) for line in self.lines]
         )

@@ -184,11 +184,13 @@ class Reference(Expression):
             case str():
                 raise ValueError
             case list():
-                return [
-                    templates[self.name.value].rendered(p, templates, left, right)
-                    for p in inner
-                    if not isinstance(p, str)
-                ]
+                result: list[str] = []
+                for p in inner:
+                    assert not isinstance(p, str)
+                    result.append(
+                        templates[self.name.value].rendered(p, templates, left, right)
+                    )
+                return result
             case _:
                 return [
                     templates[self.name.value].rendered(inner, templates, left, right)

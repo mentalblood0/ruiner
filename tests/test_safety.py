@@ -15,11 +15,20 @@ def test_nonexistent_ref():
         ruiner.Template("<!-- (ref)something -->").rendered({"something": {}})
 
 
-def test_invalid_parameters():
-    with pytest.raises(ValueError):
+def test_invalid_parameter_parameters():
+    with pytest.raises(TypeError):
         ruiner.Template("<!-- (ref)something -->").rendered(
             {"something": "string"}, {"something": ruiner.Template("lalala")}
         )
+    with pytest.raises(TypeError):
+        ruiner.Template("<!-- (ref)something -->").rendered(
+            {"something": ["string"]}, {"something": ruiner.Template("lalala")}
+        )
+
+
+def test_invalid_ref_parameters():
+    with pytest.raises(TypeError):
+        ruiner.Template("<!-- (param)something -->").rendered({"something": {}}, {})
 
 
 def test_nonexistent_ref_deep():

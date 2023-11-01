@@ -29,4 +29,4 @@ jobs:
     - name: Test with pytest and check coverage
       run: |
         coverage run -m pytest tests
-        coverage report -m --fail-under=100
+        coverage report -m --skip-covered --sort=cover --fail-under=100

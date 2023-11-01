@@ -2,17 +2,17 @@ import pytest
 import ruiner
 
 
-@pytest.fixture
+@pytest.fixture()
 def param_name():
     return "x"
 
 
-@pytest.fixture
+@pytest.fixture()
 def param_value():
     return "lalala"
 
 
-@pytest.fixture
+@pytest.fixture()
 def params_one(param_name: str, param_value: str):
     return {param_name: param_value}
 
@@ -63,19 +63,16 @@ def test_ref():
 
 
 def test_consicutive_lines(number: int = 2):
-    assert ruiner.Template(
-        "".join(
-            f"    <!-- (ref)test_consicutive_lines_{i} -->\n" for i in range(number)
-        )
-    ).rendered(
+    text = "".join(
+        f"    <!-- (ref)test_consicutive_lines_{i} -->\n" for i in range(number)
+    )
+    assert ruiner.Template(text).rendered(
         parameters={},
         templates={
             f"test_consicutive_lines_{i}": ruiner.Template(str(i))
             for i in range(number)
         },
-    ) == "".join(
-        f"    {i}\n" for i in range(number)
-    )
+    ) == "".join(f"    {i}\n" for i in range(number))
 
 
 def test_optional_param():

@@ -1,6 +1,7 @@
 import re
 import typing
 import functools
+import contextlib
 import dataclasses
 
 from .Regexp import Regexp
@@ -12,16 +13,20 @@ class Pattern:
 
     expression = Regexp(re.compile(".*"))
 
-    def __post_init__(self):
-        if not self.expression.match(self.value):
+    @functools.cached_property
+    def match(self):
+        if not (result := self.expression.match(self.value)):
             raise ValueError(
                 f'Expression "{self.expression}"' f'does not match value "{self.value}"'
             )
+        return result
+
+    def __post_init__(self):
+        self.match
 
     @functools.cached_property
     def groups(self):
-        assert (match := self.expression.match(self.value)) is not None
-        return match.groupdict()
+        return self.match.groupdict()
 
     @classmethod
     @functools.lru_cache
@@ -114,10 +119,8 @@ class Expression(Pattern):
 
     @functools.cached_property
     def specified(self):
-        try:
+        with contextlib.suppress(ValueError):
             return Parameter(self.value)
-        except ValueError:
-            pass
         return Reference(self.value)
 
 
@@ -141,7 +144,8 @@ class Parameter(Expression):
 
     def rendered(self, parameters: "Template.Parameters", _: dict[str, "Template"]):
         try:
-            assert isinstance(p := parameters[self.name.value], str | list)
+            if not isinstance(p := parameters[self.name.value], str | list):
+                raise TypeError
             return self._rendered(p)
         except KeyError:
             if not self.optional:
@@ -183,11 +187,12 @@ class Reference(Expression):
     ):
         match (inner := self.inner(parameters)):
             case str():
-                raise ValueError
+                raise TypeError
             case list():
                 result: list[str] = []
                 for p in inner:
-                    assert not isinstance(p, str)
+                    if isinstance(p, str):
+                        raise TypeError
                     result.append(
                         templates[self.name.value].rendered(p, templates, left, right)
                     )

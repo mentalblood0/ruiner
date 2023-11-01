@@ -71,9 +71,7 @@ def ReferenceLine(*args: str, name: str = "R", **kwargs: str):
 @pytest.mark.parametrize(
     "value",
     TestLists.Valid.value
-    + sum(
-        (list(t) for t in itertools.combinations(TestLists.Valid.value, 4)), list[str]()
-    ),
+    + [list(e) for e in itertools.permutations(TestLists.Valid.value, 4)],
 )
 @pytest.mark.parametrize("other_left", TestLists.Valid.other + [Syntax.open])
 @pytest.mark.parametrize("gap_left", TestLists.Valid.gap)
@@ -86,6 +84,9 @@ def test_param_valid(
     gap_right: str,
     other_right: str,
 ):
+    # print([list(t) for t in itertools.permutations(TestLists.Valid.value, 4)])
+    # exit()
+    # assert False
     result = ruiner.Template(
         ParametersLine(
             other_left=other_left,
@@ -168,9 +169,7 @@ def test_multiple_param_valid(lines_args: list[str]):
 @pytest.mark.parametrize(
     "value",
     TestLists.Valid.value
-    + sum(
-        (list(t) for t in itertools.combinations(TestLists.Valid.value, 4)), list[str]()
-    ),
+    + [list(e) for e in itertools.permutations(TestLists.Valid.value, 4)],
 )
 @pytest.mark.parametrize("other_left", TestLists.Valid.other + [Syntax.open])
 @pytest.mark.parametrize("gap_left", TestLists.Valid.gap)

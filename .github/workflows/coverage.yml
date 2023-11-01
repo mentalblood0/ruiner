@@ -1,6 +1,6 @@
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
 
-name: pytest
+name: coverage 100%
 
 on:
   push:
@@ -15,7 +15,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        python-version: ["3.10", "3.11", "3.12"]
+        python-version: ["3.12"]
 
     steps:
     - uses: actions/checkout@v3
@@ -25,7 +25,8 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip pytest
-    - name: Test with pytest
+        python -m pip install --upgrade pip pytest coverage
+    - name: Test with pytest and check coverage
       run: |
-        pytest tests
+        coverage run -m pytest tests
+        coverage report -m --fail-under=100

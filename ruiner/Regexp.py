@@ -31,6 +31,3 @@ class Regexp:
 
     def __call__(self, name: str):
         return Regexp(re.compile(f"(?P<{name}>{self.degrouped})"))
-
-    def __add__(self, another: "Regexp"):
-        return Regexp(re.compile(f"{self}{another}"))

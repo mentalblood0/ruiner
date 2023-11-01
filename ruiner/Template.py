@@ -26,10 +26,11 @@ class Pattern:
     @classmethod
     @functools.lru_cache
     def extracted(cls, source: "Pattern"):
-        return [
+        result = [
             cls(source.value[m.start() : m.end()])
             for m in cls.expression.find(source.value)
         ]
+        return result
 
     @classmethod
     @functools.lru_cache
@@ -112,12 +113,11 @@ class Expression(Pattern):
 
     @functools.cached_property
     def specified(self):
-        for C in (Parameter, Reference):
-            try:
-                return C(self.value)
-            except ValueError:
-                continue
-        raise ValueError
+        try:
+            return Parameter(self.value)
+        except ValueError:
+            pass
+        return Reference(self.value)
 
 
 class Parameter(Expression):
@@ -242,9 +242,9 @@ class Line(Pattern):
 
     @functools.cached_property
     def specified(self):
-        try:
+        if len(Reference.extracted(self)) == 1:
             return Line.OneReference(self.value)
-        except ValueError:
+        else:
             return self
 
     def _rendered(self, inner: tuple[str]):

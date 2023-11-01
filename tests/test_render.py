@@ -17,11 +17,6 @@ def params_one(param_name: str, param_value: str):
     return {param_name: param_value}
 
 
-@pytest.fixture
-def params_list(param_name: str, param_values: list[str]):
-    return {param_name: param_values}
-
-
 def test_basic(
     param_name: str, param_value: str, params_one: ruiner.Template.Parameters
 ):
@@ -150,4 +145,16 @@ def test_multiple_params_followed_by_empty_line():
             "table (mean of <!-- (param)experiments_number --> experiments)\n\n",
         ).rendered({"size": "10", "experiments_number": "1000"})
         == "Rendering 10x10 table (mean of 1000 experiments)\n\n"
+    )
+
+
+def test_multiple_refs():
+    assert (
+        ruiner.Template(
+            "abc<!-- (ref)ref1 -->de<!-- (ref)ref2 -->f",
+        ).rendered(
+            {"ref1": {}, "ref2": {}},
+            {"ref1": ruiner.Template("lalala"), "ref2": ruiner.Template("lololo")},
+        )
+        == "abclalaladelololof"
     )

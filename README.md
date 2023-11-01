@@ -3,11 +3,11 @@
 <h3 align="center">safe and clean template engine</h3>
 
 <p align="center">
-<a href="https://github.com/MentalBlood/ruiner/actions/workflows/lint.yml"><img alt="Lint Status" src="https://github.com/MentalBlood/ruiner/actions/workflows/lint.yml/badge.svg"></a>
-<a href="https://github.com/MentalBlood/ruiner/actions/workflows/typing.yml"><img alt="Typing Status" src="https://github.com/MentalBlood/ruiner/actions/workflows/typing.yml/badge.svg"></a>
-<a href="https://github.com/MentalBlood/ruiner/actions/workflows/complexity.yml"><img alt="Complexity Status" src="https://github.com/MentalBlood/ruiner/actions/workflows/complexity.yml/badge.svg"></a>
-<a href="https://github.com/MentalBlood/ruiner/actions/workflows/tests.yml"><img alt="Tests Status" src="https://github.com/MentalBlood/ruiner/actions/workflows/tests.yml/badge.svg"></a>
-<a href="https://github.com/MentalBlood/ruiner/actions/workflows/coverage.yml"><img alt="Coverage Status" src="https://github.com/MentalBlood/ruiner/actions/workflows/coverage.yml/badge.svg"></a>
+<a href="https://github.com/MentalBlood/ruiner/blob/master/.github/workflows/lint.yml"><img alt="Lint Status" src="https://github.com/MentalBlood/ruiner/actions/workflows/lint.yml/badge.svg"></a>
+<a href="https://github.com/MentalBlood/ruiner/blob/master/.github/workflows/typing.yml"><img alt="Typing Status" src="https://github.com/MentalBlood/ruiner/actions/workflows/typing.yml/badge.svg"></a>
+<a href="https://github.com/MentalBlood/ruiner/blob/master/.github/workflows/complexity.yml"><img alt="Complexity Status" src="https://github.com/MentalBlood/ruiner/actions/workflows/complexity.yml/badge.svg"></a>
+<a href="https://github.com/MentalBlood/ruiner/blob/master/.github/workflows/tests.yml"><img alt="Tests Status" src="https://github.com/MentalBlood/ruiner/actions/workflows/tests.yml/badge.svg"></a>
+<a href="https://github.com/MentalBlood/ruiner/blob/master/.github/workflows/coverage.yml"><img alt="Coverage Status" src="https://github.com/MentalBlood/ruiner/actions/workflows/coverage.yml/badge.svg"></a>
 <a href="https://github.com/psf/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
 </p>
 

@@ -167,8 +167,7 @@ class Reference(Expression):
     def inner(self, parameters: "Template.Parameters"):
         if self.name.value in parameters:
             return parameters[self.name.value]
-        else:
-            return Template.Parameters({})
+        return Template.Parameters({})
 
     def _rendered_optional(
         self, parameters: "Template.Parameters", templates: "Template.Templates"
@@ -252,8 +251,7 @@ class Line(Pattern):
     def specified(self):
         if len(Reference.extracted(self)) == 1:
             return Line.OneReference(self.value)
-        else:
-            return self
+        return self
 
     def _rendered(self, inner: tuple[str]):
         current = iter(inner)
@@ -266,23 +264,19 @@ class Line(Pattern):
         self,
         parameters: "Template.Parameters",
         templates: "Template.Templates",
-        left: str = "",
-        right: str = "",
+        left: str,
+        right: str,
     ):
         if not len(extracted := Expression.extracted(self)):
             return left + self.value + right
-        else:
-            return str(Delimiter.expression).join(
-                [
-                    left + self._rendered(inner) + right
-                    for inner in zip(
-                        *[
-                            p.specified.rendered(parameters, templates)
-                            for p in extracted
-                        ]
-                    )
-                ]
-            )
+        return str(Delimiter.expression).join(
+            [
+                left + self._rendered(inner) + right
+                for inner in zip(
+                    *[p.specified.rendered(parameters, templates) for p in extracted]
+                )
+            ]
+        )
 
 
 class Template(Pattern):

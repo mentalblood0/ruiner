@@ -25,7 +25,8 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip flake8 flake8-bugbear flake8-simplify flake8-pytest-style flake8-use-pathlib flake8-raise flake8-print flake8-eradicate flake8_boolean_trap flake8-builtins flake8-use-fstring flake8-cognitive-complexity flake8-expression-complexity
+        python -m pip install --upgrade pip flake8 flake8-bugbear flake8-simplify flake8-pytest-style flake8-use-pathlib flake8-raise flake8-print flake8-eradicate flake8_boolean_trap flake8-builtins flake8-use-fstring flake8-cognitive-complexity flake8-expression-complexity refurb
     - name: Check for errors with flake8
       run: |
         flake8 --max-line-length=88 --extend-ignore=E203 --per-file-ignores="test_*:SCS108,S101"
+        refurb .

@@ -142,7 +142,7 @@ class Parameter(Expression):
             case str():
                 return [parameters]
 
-    def rendered(self, parameters: "Template.Parameters", _: dict[str, "Template"]):
+    def rendered(self, parameters: "Template.Parameters", _: "Template.Templates"):
         try:
             if not isinstance(p := parameters[self.name.value], str | list):
                 raise TypeError
@@ -171,7 +171,7 @@ class Reference(Expression):
             return Template.Parameters({})
 
     def _rendered_optional(
-        self, parameters: "Template.Parameters", templates: dict[str, "Template"]
+        self, parameters: "Template.Parameters", templates: "Template.Templates"
     ):
         if self.name.value not in parameters:
             return [""]
@@ -181,7 +181,7 @@ class Reference(Expression):
     def _rendered(
         self,
         parameters: "Template.Parameters",
-        templates: dict[str, "Template"],
+        templates: "Template.Templates",
         left: str = "",
         right: str = "",
     ):
@@ -205,7 +205,7 @@ class Reference(Expression):
     def rendered(
         self,
         parameters: "Template.Parameters",
-        templates: dict[str, "Template"],
+        templates: "Template.Templates",
         left: str = "",
         right: str = "",
     ) -> list[str]:
@@ -238,7 +238,7 @@ class Line(Pattern):
         def rendered(
             self,
             parameters: "Template.Parameters",
-            templates: dict[str, "Template"],
+            templates: "Template.Templates",
             left: str = "",
             right: str = "",
         ):
@@ -265,7 +265,7 @@ class Line(Pattern):
     def rendered(
         self,
         parameters: "Template.Parameters",
-        templates: dict[str, "Template"],
+        templates: "Template.Templates",
         left: str = "",
         right: str = "",
     ):
@@ -289,6 +289,7 @@ class Template(Pattern):
     Parameters = dict[
         str, typing.Union[str, list[str], "Parameters", list["Parameters"]]
     ]
+    Templates = dict[str, "Template"]
 
     expression = Regexp(re.compile("(?:.*\n)*(?:.*)?"))
 
@@ -301,7 +302,7 @@ class Template(Pattern):
     def rendered(
         self,
         parameters: "Template.Parameters",
-        templates: dict[str, "Template"] | None = None,
+        templates: Templates | None = None,
         left: str = "",
         right: str = "",
     ):

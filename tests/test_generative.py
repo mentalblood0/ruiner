@@ -90,7 +90,7 @@ def test_param_valid(
                 other_right=other_right,
             )
         )
-    ).rendered({"p": value}, {})
+    ).rendered({"p": value})
     match value:
         case str():
             assert result == f"{other_left}{value}{other_right}"

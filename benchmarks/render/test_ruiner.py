@@ -34,7 +34,7 @@ def table():
 @pytest.fixture()
 def parameters(
     table_width: int, table_height: int, cell_value: typing.Callable[[int, int], str]
-) -> ruiner.Template.Parameters:
+) -> ruiner.TemplateParameters:
     return {"Row": [{"cell": [cell_value(x, y) for x in range(table_width)]} for y in range(table_height)]}
 
 
@@ -46,8 +46,8 @@ def templates(row: ruiner.Template):
 def test_drunk_snail(
     benchmark: fixture.BenchmarkFixture,
     table: ruiner.Template,
-    parameters: ruiner.Template.Parameters,
-    templates: dict[str, ruiner.Template],
+    parameters: ruiner.TemplateParameters,
+    templates: typing.Dict[str, ruiner.Template],
 ):
     def test():
         return table.rendered(parameters, templates)

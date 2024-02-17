@@ -1,9 +1,16 @@
 import dataclasses
 import itertools
+import typing
 
 import pytest
 
 import ruiner
+
+
+def pairwise(iterable):
+    a, b = itertools.tee(iterable)
+    next(b, None)
+    return zip(a, b)
 
 
 class Syntax:
@@ -16,21 +23,21 @@ class Syntax:
 
 class TestLists:
     class Valid:
-        other: list[str] = ["", " ", "la"]
-        gap: list[str] = ["", " ", "  "]
-        value: list[str] = ["", "l", "la", "\n"]
+        other: typing.List[str] = ["", " ", "la"]
+        gap: typing.List[str] = ["", " ", "  "]
+        value: typing.List[str] = ["", "l", "la", "\n"]
 
-        ref: list[str] = [f"{Syntax.opening}{Syntax.param}p{Syntax.close}"]
+        ref: typing.List[str] = [f"{Syntax.opening}{Syntax.param}p{Syntax.close}"]
 
-        one_line_params_number: list[int] = [2, 3]
+        one_line_params_number: typing.List[int] = [2, 3]
 
     class Invalid:
-        gap: list[str] = ["l", "la"]
+        gap: typing.List[str] = ["l", "la"]
 
-        open_tag: list[str] = [Syntax.close] + [Syntax.opening[:k] for k in range(len(Syntax.opening) - 1)]
-        close_tag: list[str] = [Syntax.opening] + [Syntax.close[:k] for k in range(len(Syntax.close) - 1)]
+        open_tag: typing.List[str] = [Syntax.close] + [Syntax.opening[:k] for k in range(len(Syntax.opening) - 1)]
+        close_tag: typing.List[str] = [Syntax.opening] + [Syntax.close[:k] for k in range(len(Syntax.close) - 1)]
 
-        name: list[str] = ["1", "-", "1l"]
+        name: typing.List[str] = ["1", "-", "1l"]
 
 
 @dataclasses.dataclass(frozen=True)
@@ -68,7 +75,9 @@ class Line:
 @pytest.mark.parametrize("gap_left", TestLists.Valid.gap)
 @pytest.mark.parametrize("gap_right", TestLists.Valid.gap)
 @pytest.mark.parametrize("other_right", TestLists.Valid.other + [Syntax.close])
-def test_param_valid(value: str | list[str], other_left: str, gap_left: str, gap_right: str, other_right: str):
+def test_param_valid(
+    value: typing.Union[str, typing.List[str]], other_left: str, gap_left: str, gap_right: str, other_right: str
+):
     result = ruiner.Template(
         str(
             Line(
@@ -122,7 +131,7 @@ def test_param_invalid(
 
 @pytest.mark.parametrize(
     "lines_args",
-    itertools.pairwise(
+    pairwise(
         itertools.product(
             TestLists.Valid.value,  # name
             TestLists.Valid.other + [Syntax.opening],  # other_left
@@ -132,7 +141,7 @@ def test_param_invalid(
         )
     ),
 )
-def test_multiple_param_valid(lines_args: list[str]):
+def test_multiple_param_valid(lines_args: typing.List[str]):
     assert ruiner.Template(
         "\n".join(
             str(
@@ -160,7 +169,14 @@ def test_multiple_param_valid(lines_args: list[str]):
 @pytest.mark.parametrize("gap_left", TestLists.Valid.gap)
 @pytest.mark.parametrize("gap_right", TestLists.Valid.gap)
 @pytest.mark.parametrize("other_right", TestLists.Valid.other + [Syntax.close])
-def test_ref_valid(ref: str, value: str | list[str], other_left: str, gap_left: str, gap_right: str, other_right: str):
+def test_ref_valid(
+    ref: str,
+    value: typing.Union[str, typing.List[str]],
+    other_left: str,
+    gap_left: str,
+    gap_right: str,
+    other_right: str,
+):
     result = ruiner.Template(
         str(
             Line(

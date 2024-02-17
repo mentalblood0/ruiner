@@ -37,7 +37,7 @@ class Pattern:
     @classmethod
     @functools.lru_cache(maxsize=128)
     def highlighted(cls, source: "Pattern"):
-        result: list[Other | cls] = []
+        result: "list[Other | cls]" = []
         last_end = 0
         for m in cls.expression.find(source.value):
             result += [Other(source.value[last_end : m.start()]), cls(source.value[m.start() : m.end()])]
@@ -132,22 +132,22 @@ class Parameter(Expression):
         Close.expression,
     )
 
-    def _rendered(self, parameters: str | list[str] | list["Template.Parameters"]):
+    def _rendered(self, parameters: typing.Union[str, "list[str]", 'list["TemplateParameters"]']):
         if isinstance(parameters, list):
             return parameters
         elif isinstance(parameters, str):
             return [parameters]
 
-    def rendered(self, parameters: "Template.Parameters", _: "Template.Templates"):
+    def rendered(self, parameters: "TemplateParameters", _: "Templates"):
         try:
             p = parameters[self.name.value]
-            if not isinstance(p, str | list):
+            if not (isinstance(p, str) or isinstance(p, list)):
                 raise TypeError
             return self._rendered(p)
         except KeyError:
             if not self.optional:
                 return [""]
-            return list[str]()
+            return list()
 
 
 class Reference(Expression):
@@ -161,25 +161,23 @@ class Reference(Expression):
         Close.expression,
     )
 
-    def inner(self, parameters: "Template.Parameters"):
+    def inner(self, parameters: "TemplateParameters"):
         if self.name.value in parameters:
             return parameters[self.name.value]
-        return Template.Parameters({})
+        return {}
 
-    def _rendered_optional(self, parameters: "Template.Parameters", templates: "Template.Templates"):
+    def _rendered_optional(self, parameters: "TemplateParameters", templates: "Templates"):
         if self.name.value not in parameters:
             return [""]
         elif self.name.value not in templates:
             raise KeyError
 
-    def _rendered(
-        self, parameters: "Template.Parameters", templates: "Template.Templates", left: str = "", right: str = ""
-    ):
+    def _rendered(self, parameters: "TemplateParameters", templates: "Templates", left: str = "", right: str = ""):
         inner = self.inner(parameters)
         if isinstance(inner, str):
             raise TypeError
         elif isinstance(inner, list):
-            result: list[str] = []
+            result: "list[str]" = []
             for p in inner:
                 if isinstance(p, str):
                     raise TypeError
@@ -189,8 +187,8 @@ class Reference(Expression):
             return [templates[self.name.value].rendered(inner, templates, left, right)]
 
     def rendered(
-        self, parameters: "Template.Parameters", templates: "Template.Templates", left: str = "", right: str = ""
-    ) -> list[str]:
+        self, parameters: "TemplateParameters", templates: "Templates", left: str = "", right: str = ""
+    ) -> "list[str]":
         result = self._rendered_optional(parameters, templates)
         if self.optional and result is not None:
             return result
@@ -218,9 +216,7 @@ class Line(Pattern):
         def right(self):
             return Other(self["right"]).rendered
 
-        def rendered(
-            self, parameters: "Template.Parameters", templates: "Template.Templates", left: str = "", right: str = ""
-        ):
+        def rendered(self, parameters: "TemplateParameters", templates: "Templates", left: str = "", right: str = ""):
             return str(Delimiter.expression).join(
                 self.reference.rendered(parameters, templates, left + self.left, self.right + right)
             )
@@ -232,11 +228,11 @@ class Line(Pattern):
             return Line.OneReference(self.value)
         return self
 
-    def _rendered(self, inner: tuple[str]):
+    def _rendered(self, inner: typing.Tuple[str]):
         current = iter(inner)
         return "".join(e.value if isinstance(e, Other) else next(current) for e in Expression.highlighted(self))
 
-    def rendered(self, parameters: "Template.Parameters", templates: "Template.Templates", left: str, right: str):
+    def rendered(self, parameters: "TemplateParameters", templates: "Templates", left: str, right: str):
         extracted = Expression.extracted(self)
         if not extracted:
             return left + self.value + right
@@ -248,10 +244,13 @@ class Line(Pattern):
         )
 
 
-class Template(Pattern):
-    Parameters = dict[str, typing.Union[str, list[str], "Parameters", list["Parameters"]]]
-    Templates = dict[str, "Template"]
+TemplateParameters = typing.Dict[
+    str, typing.Union[str, typing.List[str], "TemplateParameters", typing.List["TemplateParameters"]]
+]
+Templates = typing.Dict[str, "Template"]
 
+
+class Template(Pattern):
     expression = Regexp(re.compile("(?:.*\n)*(?:.*)?"))
 
     @property
@@ -260,7 +259,11 @@ class Template(Pattern):
         return [Line(line).specified for line in self.value.split(str(Delimiter.expression))]
 
     def rendered(
-        self, parameters: "Template.Parameters", templates: Templates | None = None, left: str = "", right: str = ""
+        self,
+        parameters: TemplateParameters,
+        templates: typing.Union[Templates, None] = None,
+        left: str = "",
+        right: str = "",
     ):
         templates = templates or {}
         return str(Delimiter.expression).join(

@@ -28,3 +28,4 @@ jobs:
       - name: Test with pyright
         run: |
           pyright
+          pyright --pythonversion 3.7

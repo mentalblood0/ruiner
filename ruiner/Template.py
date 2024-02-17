@@ -1,8 +1,8 @@
-import re
-import typing
-import functools
 import contextlib
 import dataclasses
+import functools
+import re
+import typing
 
 from .Regexp import Regexp
 
@@ -16,9 +16,7 @@ class Pattern:
     @functools.cached_property
     def match(self):
         if not (result := self.expression.match(self.value)):
-            raise ValueError(
-                f'Expression "{self.expression}"' f'does not match value "{self.value}"'
-            )
+            raise ValueError(f'Expression "{self.expression}"' f'does not match value "{self.value}"')
         return result
 
     def __post_init__(self):
@@ -31,10 +29,7 @@ class Pattern:
     @classmethod
     @functools.lru_cache
     def extracted(cls, source: "Pattern"):
-        return [
-            cls(source.value[m.start() : m.end()])
-            for m in cls.expression.find(source.value)
-        ]
+        return [cls(source.value[m.start() : m.end()]) for m in cls.expression.find(source.value)]
 
     @classmethod
     @functools.lru_cache
@@ -42,10 +37,7 @@ class Pattern:
         result: list[Other | cls] = []
         last_end = 0
         for m in cls.expression.find(source.value):
-            result += [
-                Other(source.value[last_end : m.start()]),
-                cls(source.value[m.start() : m.end()]),
-            ]
+            result += [Other(source.value[last_end : m.start()]), cls(source.value[m.start() : m.end()])]
             last_end = m.end()
         result.append(Other(source.value[last_end:]))
         return [r for r in result if r.value]
@@ -169,20 +161,14 @@ class Reference(Expression):
             return parameters[self.name.value]
         return Template.Parameters({})
 
-    def _rendered_optional(
-        self, parameters: "Template.Parameters", templates: "Template.Templates"
-    ):
+    def _rendered_optional(self, parameters: "Template.Parameters", templates: "Template.Templates"):
         if self.name.value not in parameters:
             return [""]
         elif self.name.value not in templates:
             raise KeyError
 
     def _rendered(
-        self,
-        parameters: "Template.Parameters",
-        templates: "Template.Templates",
-        left: str = "",
-        right: str = "",
+        self, parameters: "Template.Parameters", templates: "Template.Templates", left: str = "", right: str = ""
     ):
         match (inner := self.inner(parameters)):
             case str():
@@ -192,21 +178,13 @@ class Reference(Expression):
                 for p in inner:
                     if isinstance(p, str):
                         raise TypeError
-                    result.append(
-                        templates[self.name.value].rendered(p, templates, left, right)
-                    )
+                    result.append(templates[self.name.value].rendered(p, templates, left, right))
                 return result
             case _:
-                return [
-                    templates[self.name.value].rendered(inner, templates, left, right)
-                ]
+                return [templates[self.name.value].rendered(inner, templates, left, right)]
 
     def rendered(
-        self,
-        parameters: "Template.Parameters",
-        templates: "Template.Templates",
-        left: str = "",
-        right: str = "",
+        self, parameters: "Template.Parameters", templates: "Template.Templates", left: str = "", right: str = ""
     ) -> list[str]:
         result = self._rendered_optional(parameters, templates)
         if self.optional and result is not None:
@@ -217,9 +195,7 @@ class Reference(Expression):
 class Line(Pattern):
     class OneReference(Pattern):
         expression = Regexp.sequence(
-            Other.expression.optional("left"),
-            Reference.expression("reference"),
-            Other.expression.optional("right"),
+            Other.expression.optional("left"), Reference.expression("reference"), Other.expression.optional("right")
         )
 
         @functools.cached_property
@@ -235,16 +211,10 @@ class Line(Pattern):
             return Other(self["right"]).rendered
 
         def rendered(
-            self,
-            parameters: "Template.Parameters",
-            templates: "Template.Templates",
-            left: str = "",
-            right: str = "",
+            self, parameters: "Template.Parameters", templates: "Template.Templates", left: str = "", right: str = ""
         ):
             return str(Delimiter.expression).join(
-                self.reference.rendered(
-                    parameters, templates, left + self.left, self.right + right
-                )
+                self.reference.rendered(parameters, templates, left + self.left, self.right + right)
             )
 
     @functools.cached_property
@@ -255,50 +225,31 @@ class Line(Pattern):
 
     def _rendered(self, inner: tuple[str]):
         current = iter(inner)
-        return "".join(
-            e.value if isinstance(e, Other) else next(current)
-            for e in Expression.highlighted(self)
-        )
+        return "".join(e.value if isinstance(e, Other) else next(current) for e in Expression.highlighted(self))
 
-    def rendered(
-        self,
-        parameters: "Template.Parameters",
-        templates: "Template.Templates",
-        left: str,
-        right: str,
-    ):
+    def rendered(self, parameters: "Template.Parameters", templates: "Template.Templates", left: str, right: str):
         if not len(extracted := Expression.extracted(self)):
             return left + self.value + right
         return str(Delimiter.expression).join(
             [
                 left + self._rendered(inner) + right
-                for inner in zip(
-                    *[p.specified.rendered(parameters, templates) for p in extracted]
-                )
+                for inner in zip(*[p.specified.rendered(parameters, templates) for p in extracted])
             ]
         )
 
 
 class Template(Pattern):
-    Parameters = dict[
-        str, typing.Union[str, list[str], "Parameters", list["Parameters"]]
-    ]
+    Parameters = dict[str, typing.Union[str, list[str], "Parameters", list["Parameters"]]]
     Templates = dict[str, "Template"]
 
     expression = Regexp(re.compile("(?:.*\n)*(?:.*)?"))
 
     @functools.cached_property
     def lines(self):
-        return [
-            Line(line).specified for line in self.value.split(str(Delimiter.expression))
-        ]
+        return [Line(line).specified for line in self.value.split(str(Delimiter.expression))]
 
     def rendered(
-        self,
-        parameters: "Template.Parameters",
-        templates: Templates | None = None,
-        left: str = "",
-        right: str = "",
+        self, parameters: "Template.Parameters", templates: Templates | None = None, left: str = "", right: str = ""
     ):
         templates = templates or {}
         return str(Delimiter.expression).join(

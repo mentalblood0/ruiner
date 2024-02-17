@@ -1,7 +1,9 @@
-import ruiner
-import pytest
-import itertools
 import dataclasses
+import itertools
+
+import pytest
+
+import ruiner
 
 
 class Syntax:
@@ -25,12 +27,8 @@ class TestLists:
     class Invalid:
         gap: list[str] = ["l", "la"]
 
-        open_tag: list[str] = [Syntax.close] + [
-            Syntax.opening[:k] for k in range(len(Syntax.opening) - 1)
-        ]
-        close_tag: list[str] = [Syntax.opening] + [
-            Syntax.close[:k] for k in range(len(Syntax.close) - 1)
-        ]
+        open_tag: list[str] = [Syntax.close] + [Syntax.opening[:k] for k in range(len(Syntax.opening) - 1)]
+        close_tag: list[str] = [Syntax.opening] + [Syntax.close[:k] for k in range(len(Syntax.close) - 1)]
 
         name: list[str] = ["1", "-", "1l"]
 
@@ -64,21 +62,13 @@ class Line:
 
 
 @pytest.mark.parametrize(
-    "value",
-    TestLists.Valid.value
-    + [list(e) for e in itertools.permutations(TestLists.Valid.value, 4)],
+    "value", TestLists.Valid.value + [list(e) for e in itertools.permutations(TestLists.Valid.value, 4)]
 )
 @pytest.mark.parametrize("other_left", TestLists.Valid.other + [Syntax.opening])
 @pytest.mark.parametrize("gap_left", TestLists.Valid.gap)
 @pytest.mark.parametrize("gap_right", TestLists.Valid.gap)
 @pytest.mark.parametrize("other_right", TestLists.Valid.other + [Syntax.close])
-def test_param_valid(
-    value: str | list[str],
-    other_left: str,
-    gap_left: str,
-    gap_right: str,
-    other_right: str,
-):
+def test_param_valid(value: str | list[str], other_left: str, gap_left: str, gap_right: str, other_right: str):
     result = ruiner.Template(
         str(
             Line(
@@ -169,22 +159,13 @@ def test_multiple_param_valid(lines_args: list[str]):
 
 @pytest.mark.parametrize("ref", TestLists.Valid.ref)
 @pytest.mark.parametrize(
-    "value",
-    TestLists.Valid.value
-    + [list(e) for e in itertools.permutations(TestLists.Valid.value, 4)],
+    "value", TestLists.Valid.value + [list(e) for e in itertools.permutations(TestLists.Valid.value, 4)]
 )
 @pytest.mark.parametrize("other_left", TestLists.Valid.other + [Syntax.opening])
 @pytest.mark.parametrize("gap_left", TestLists.Valid.gap)
 @pytest.mark.parametrize("gap_right", TestLists.Valid.gap)
 @pytest.mark.parametrize("other_right", TestLists.Valid.other + [Syntax.close])
-def test_ref_valid(
-    ref: str,
-    value: str | list[str],
-    other_left: str,
-    gap_left: str,
-    gap_right: str,
-    other_right: str,
-):
+def test_ref_valid(ref: str, value: str | list[str], other_left: str, gap_left: str, gap_right: str, other_right: str):
     result = ruiner.Template(
         str(
             Line(

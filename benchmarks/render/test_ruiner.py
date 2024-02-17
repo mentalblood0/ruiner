@@ -1,7 +1,9 @@
-import pytest
-import ruiner
 import typing
+
+import pytest
 from pytest_benchmark import fixture
+
+import ruiner
 
 
 @pytest.fixture()
@@ -33,12 +35,7 @@ def table():
 def parameters(
     table_width: int, table_height: int, cell_value: typing.Callable[[int, int], str]
 ) -> ruiner.Template.Parameters:
-    return {
-        "Row": [
-            {"cell": [cell_value(x, y) for x in range(table_width)]}
-            for y in range(table_height)
-        ]
-    }
+    return {"Row": [{"cell": [cell_value(x, y) for x in range(table_width)]} for y in range(table_height)]}
 
 
 @pytest.fixture()

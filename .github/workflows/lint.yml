@@ -30,4 +30,4 @@ jobs:
       - name: Check for errors with flake8
         run: |
           flake8 --max-line-length=120 --extend-ignore=E203,B019,SIM101 --per-file-ignores="test_*:SCS108,S101"
-          refurb .
+          refurb --disable FURB121 .

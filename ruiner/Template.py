@@ -147,7 +147,7 @@ class Parameter(Expression):
         except KeyError:
             if not self.optional:
                 return [""]
-            return list()
+            return []
 
 
 class Reference(Expression):

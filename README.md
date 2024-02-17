@@ -9,36 +9,42 @@
 <a href="https://github.com/MentalBlood/ruiner/blob/master/.github/workflows/tests.yml"><img alt="Tests Status" src="https://github.com/MentalBlood/ruiner/actions/workflows/tests.yml/badge.svg"></a>
 <a href="https://github.com/MentalBlood/ruiner/blob/master/.github/workflows/coverage.yml"><img alt="Coverage Status" src="https://github.com/MentalBlood/ruiner/actions/workflows/coverage.yml/badge.svg"></a>
 <a href="https://github.com/psf/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
+<a href="https://docs.python.org/3.7"><img alt="Python version: 3.7+" src="https://img.shields.io/badge/Python-3.7+-00AA00.svg"></a>
 </p>
 
 Pure Python object oriented implementation of template language originally presented in [drunk snail](https://github.com/mentalblood/drunk_snail)
 
 ## Why this language?
 
-* Easy syntax
-* Separates logic and data
+- Easy syntax
+- Separates logic and data
 
 ## Why better then drunk snail?
 
-* Small codebase
-* Secure by design
-* Flexible object model
+- Small codebase
+- Secure by design
+- Flexible object model
 
 ## Example
 
 Row:
+
 ```html
 <tr>
-    <td><!-- (param)cell --></td>
+  <td><!-- (param)cell --></td>
 </tr>
 ```
+
 Table:
+
 ```html
 <table>
-    <!-- (ref)Row -->
+  <!-- (ref)Row -->
 </table>
 ```
+
 Arguments:
+
 ```python
 {
     "Row": [
@@ -57,17 +63,19 @@ Arguments:
     ]
 }
 ```
+
 Result:
+
 ```html
 <table>
-    <tr>
-        <td>1</td>
-        <td>2</td>
-    </tr>
-    <tr>
-        <td>3</td>
-        <td>4</td>
-    </tr>
+  <tr>
+    <td>1</td>
+    <td>2</td>
+  </tr>
+  <tr>
+    <td>3</td>
+    <td>4</td>
+  </tr>
 </table>
 ```
 

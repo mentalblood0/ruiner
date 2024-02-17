@@ -29,5 +29,5 @@ jobs:
           python -m pip install --upgrade pip flake8 flake8-bugbear flake8-simplify flake8-pytest-style flake8-raise flake8-print flake8-eradicate flake8_boolean_trap flake8-builtins flake8-use-fstring refurb
       - name: Check for errors with flake8
         run: |
-          flake8 --max-line-length=120 --extend-ignore=E203 --per-file-ignores="test_*:SCS108,S101"
+          flake8 --max-line-length=120 --extend-ignore=E203,B019 --per-file-ignores="test_*:SCS108,S101"
           refurb .

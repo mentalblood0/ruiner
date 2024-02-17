@@ -105,23 +105,19 @@ def test_param_invalid(
     other_right: str,
     close_tag: str,
 ):
-    assert (
-        ruiner.Template(
-            line := str(
-                Line(
-                    expression=Syntax.param,
-                    open_tag=open_tag,
-                    other_left=other_left,
-                    gap_left=gap_left,
-                    name=name,
-                    gap_right=gap_right,
-                    other_right=other_right,
-                    close_tag=close_tag,
-                )
-            )
-        ).rendered({name: value})
-        == line
+    line = str(
+        Line(
+            expression=Syntax.param,
+            open_tag=open_tag,
+            other_left=other_left,
+            gap_left=gap_left,
+            name=name,
+            gap_right=gap_right,
+            other_right=other_right,
+            close_tag=close_tag,
+        )
     )
+    assert ruiner.Template(line).rendered({name: value}) == line
 
 
 @pytest.mark.parametrize(

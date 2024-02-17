@@ -15,7 +15,8 @@ class Pattern:
 
     @functools.cached_property
     def match(self):
-        if not (result := self.expression.match(self.value)):
+        result = self.expression.match(self.value)
+        if not result:
             raise ValueError(f'Expression "{self.expression}"' f'does not match value "{self.value}"')
         return result
 
@@ -128,15 +129,15 @@ class Parameter(Expression):
     )
 
     def _rendered(self, parameters: str | list[str] | list["Template.Parameters"]):
-        match parameters:
-            case list():
-                return parameters
-            case str():
-                return [parameters]
+        if isinstance(parameters, list):
+            return parameters
+        elif isinstance(parameters, str):
+            return [parameters]
 
     def rendered(self, parameters: "Template.Parameters", _: "Template.Templates"):
         try:
-            if not isinstance(p := parameters[self.name.value], str | list):
+            p = parameters[self.name.value]
+            if not isinstance(p, str | list):
                 raise TypeError
             return self._rendered(p)
         except KeyError:
@@ -170,18 +171,18 @@ class Reference(Expression):
     def _rendered(
         self, parameters: "Template.Parameters", templates: "Template.Templates", left: str = "", right: str = ""
     ):
-        match (inner := self.inner(parameters)):
-            case str():
-                raise TypeError
-            case list():
-                result: list[str] = []
-                for p in inner:
-                    if isinstance(p, str):
-                        raise TypeError
-                    result.append(templates[self.name.value].rendered(p, templates, left, right))
-                return result
-            case _:
-                return [templates[self.name.value].rendered(inner, templates, left, right)]
+        inner = self.inner(parameters)
+        if isinstance(inner, str):
+            raise TypeError
+        elif isinstance(inner, list):
+            result: list[str] = []
+            for p in inner:
+                if isinstance(p, str):
+                    raise TypeError
+                result.append(templates[self.name.value].rendered(p, templates, left, right))
+            return result
+        else:
+            return [templates[self.name.value].rendered(inner, templates, left, right)]
 
     def rendered(
         self, parameters: "Template.Parameters", templates: "Template.Templates", left: str = "", right: str = ""
@@ -228,7 +229,8 @@ class Line(Pattern):
         return "".join(e.value if isinstance(e, Other) else next(current) for e in Expression.highlighted(self))
 
     def rendered(self, parameters: "Template.Parameters", templates: "Template.Templates", left: str, right: str):
-        if not len(extracted := Expression.extracted(self)):
+        extracted = Expression.extracted(self)
+        if not extracted:
             return left + self.value + right
         return str(Delimiter.expression).join(
             [

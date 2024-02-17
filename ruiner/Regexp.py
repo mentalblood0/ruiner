@@ -1,8 +1,8 @@
-import re
 import dataclasses
+import re
 
 
-@dataclasses.dataclass(frozen=True, kw_only=False)
+@dataclasses.dataclass(frozen=True)
 class Regexp:
     value: re.Pattern[str]
 
@@ -22,9 +22,7 @@ class Regexp:
 
     @property
     def degrouped(self):
-        return Regexp(
-            re.compile(re.sub(re.compile(r"\(\?P<\w+>([^\)]+)\)"), r"\1", str(self)))
-        )
+        return Regexp(re.compile(re.sub(re.compile(r"\(\?P<\w+>([^\)]+)\)"), r"\1", str(self))))
 
     def __str__(self):
         return self.value.pattern

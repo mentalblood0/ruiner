@@ -7,7 +7,7 @@ import typing
 from .Regexp import Regexp
 
 
-@dataclasses.dataclass(frozen=True, kw_only=False)
+@dataclasses.dataclass(frozen=True)
 class Pattern:
     value: str
 

@@ -33,7 +33,7 @@ class TestLists:
         name: list[str] = ["1", "-", "1l"]
 
 
-@dataclasses.dataclass(frozen=True, kw_only=True)
+@dataclasses.dataclass(frozen=True)
 class Line:
     expression: str
     name: str

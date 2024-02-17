@@ -121,7 +121,7 @@ def test_param_invalid(
                 )
             )
         ).rendered({name: value})
-        == f"{line}"
+        == line
     )
 
 

@@ -19,9 +19,9 @@ def params_one(param_name: str, param_value: str):
 
 
 def test_basic(param_name: str, param_value: str, params_one: ruiner.Template.Parameters):
-    assert ruiner.Template(f"<!-- (param){param_name} -->").rendered(params_one) == f"{param_value}"
+    assert ruiner.Template(f"<!-- (param){param_name} -->").rendered(params_one) == param_value
     assert ruiner.Template(f"<!-- (param){param_name} -->\n").rendered(params_one) == f"{param_value}\n"
-    assert ruiner.Template(f"{param_value}").rendered({}) == f"{param_value}"
+    assert ruiner.Template(param_value).rendered({}) == param_value
 
 
 def test_empty_template():

@@ -14,7 +14,7 @@ class Pattern:
     expression = Regexp(re.compile(".*"))
 
     @property
-    @functools.cache
+    @functools.lru_cache
     def match(self):
         result = self.expression.match(self.value)
         if not result:
@@ -25,7 +25,7 @@ class Pattern:
         self.match
 
     @property
-    @functools.cache
+    @functools.lru_cache
     def groups(self):
         return self.match.groupdict()
 
@@ -105,7 +105,7 @@ class Expression(Pattern):
     )
 
     @property
-    @functools.cache
+    @functools.lru_cache
     def name(self):
         return Name(self["name"])
 
@@ -114,7 +114,7 @@ class Expression(Pattern):
         return "optional" in self
 
     @property
-    @functools.cache
+    @functools.lru_cache
     def specified(self):
         with contextlib.suppress(ValueError):
             return Parameter(self.value)
@@ -204,17 +204,17 @@ class Line(Pattern):
         )
 
         @property
-        @functools.cache
+        @functools.lru_cache
         def left(self):
             return Other(self["left"]).rendered
 
         @property
-        @functools.cache
+        @functools.lru_cache
         def reference(self):
             return Reference(self["reference"])
 
         @property
-        @functools.cache
+        @functools.lru_cache
         def right(self):
             return Other(self["right"]).rendered
 
@@ -226,7 +226,7 @@ class Line(Pattern):
             )
 
     @property
-    @functools.cache
+    @functools.lru_cache
     def specified(self):
         if len(Reference.extracted(self)) == 1:
             return Line.OneReference(self.value)
@@ -255,7 +255,7 @@ class Template(Pattern):
     expression = Regexp(re.compile("(?:.*\n)*(?:.*)?"))
 
     @property
-    @functools.cache
+    @functools.lru_cache
     def lines(self):
         return [Line(line).specified for line in self.value.split(str(Delimiter.expression))]
 

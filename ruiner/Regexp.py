@@ -4,7 +4,7 @@ import re
 
 @dataclasses.dataclass(frozen=True)
 class Regexp:
-    value: re.Pattern[str]
+    value: re.Pattern
 
     @classmethod
     def sequence(cls, *sequence: "Regexp"):

@@ -1,14 +1,14 @@
 import pathlib
-import setuptools
 
+import setuptools
 
 if __name__ == "__main__":
     packages = setuptools.find_packages(exclude=["tests"])
 
     setuptools.setup(
         name="ruiner",
-        version="0.1.0",
-        python_requires=">=3.11",
+        version="0.2.0",
+        python_requires=">=3.7",
         keywords=["template-engine"],
         url="https://github.com/MentalBlood/ruiner",
         description="Safe and clean template engine",
@@ -22,6 +22,11 @@ if __name__ == "__main__":
             "Topic :: Text Processing :: Markup :: HTML",
             "Typing :: Typed",
             "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.7",
+            "Programming Language :: Python :: 3.8",
+            "Programming Language :: Python :: 3.9",
+            "Programming Language :: Python :: 3.10",
             "Programming Language :: Python :: 3.11",
             "Programming Language :: Python :: 3.12",
             "License :: OSI Approved :: BSD License",

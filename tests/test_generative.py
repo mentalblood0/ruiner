@@ -81,11 +81,10 @@ def test_param_valid(value: str | list[str], other_left: str, gap_left: str, gap
             )
         )
     ).rendered({"p": value})
-    match value:
-        case str():
-            assert result == f"{other_left}{value}{other_right}"
-        case _:
-            assert result == "\n".join([f"{other_left}{v}{other_right}" for v in value])
+    if isinstance(value, str):
+        assert result == f"{other_left}{value}{other_right}"
+    else:
+        assert result == "\n".join([f"{other_left}{v}{other_right}" for v in value])
 
 
 @pytest.mark.parametrize("value", TestLists.Valid.value[:1])
@@ -178,8 +177,7 @@ def test_ref_valid(ref: str, value: str | list[str], other_left: str, gap_left: 
             )
         )
     ).rendered({"R": {"p": value}}, {"R": ruiner.Template(ref)})
-    match value:
-        case str():
-            assert result == other_left + value + other_right
-        case _:
-            assert "\n".join(other_left + v + other_right for v in value)
+    if isinstance(value, str):
+        assert result == other_left + value + other_right
+    else:
+        assert "\n".join(other_left + v + other_right for v in value)

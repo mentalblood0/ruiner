@@ -13,7 +13,8 @@ class Pattern:
 
     expression = Regexp(re.compile(".*"))
 
-    @functools.cached_property
+    @property
+    @functools.cache
     def match(self):
         result = self.expression.match(self.value)
         if not result:
@@ -23,7 +24,8 @@ class Pattern:
     def __post_init__(self):
         self.match
 
-    @functools.cached_property
+    @property
+    @functools.cache
     def groups(self):
         return self.match.groupdict()
 
@@ -102,7 +104,8 @@ class Expression(Pattern):
         Close.expression,
     )
 
-    @functools.cached_property
+    @property
+    @functools.cache
     def name(self):
         return Name(self["name"])
 
@@ -110,7 +113,8 @@ class Expression(Pattern):
     def optional(self):
         return "optional" in self
 
-    @functools.cached_property
+    @property
+    @functools.cache
     def specified(self):
         with contextlib.suppress(ValueError):
             return Parameter(self.value)
@@ -199,15 +203,18 @@ class Line(Pattern):
             Other.expression.optional("left"), Reference.expression("reference"), Other.expression.optional("right")
         )
 
-        @functools.cached_property
+        @property
+        @functools.cache
         def left(self):
             return Other(self["left"]).rendered
 
-        @functools.cached_property
+        @property
+        @functools.cache
         def reference(self):
             return Reference(self["reference"])
 
-        @functools.cached_property
+        @property
+        @functools.cache
         def right(self):
             return Other(self["right"]).rendered
 
@@ -218,7 +225,8 @@ class Line(Pattern):
                 self.reference.rendered(parameters, templates, left + self.left, self.right + right)
             )
 
-    @functools.cached_property
+    @property
+    @functools.cache
     def specified(self):
         if len(Reference.extracted(self)) == 1:
             return Line.OneReference(self.value)
@@ -246,7 +254,8 @@ class Template(Pattern):
 
     expression = Regexp(re.compile("(?:.*\n)*(?:.*)?"))
 
-    @functools.cached_property
+    @property
+    @functools.cache
     def lines(self):
         return [Line(line).specified for line in self.value.split(str(Delimiter.expression))]
 

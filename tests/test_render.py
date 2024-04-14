@@ -3,17 +3,17 @@ import pytest
 import ruiner
 
 
-@pytest.fixture()
+@pytest.fixture
 def param_name():
     return "x"
 
 
-@pytest.fixture()
+@pytest.fixture
 def param_value():
     return "lalala"
 
 
-@pytest.fixture()
+@pytest.fixture
 def params_one(param_name: str, param_value: str):
     return {param_name: param_value}
 

@@ -3,16 +3,11 @@
 <h3 align="center">safe and clean template engine</h3>
 
 <p align="center">
-<a href="https://github.com/MentalBlood/ruiner/blob/master/.github/workflows/lint.yml"><img alt="Lint Status" src="https://github.com/MentalBlood/ruiner/actions/workflows/lint.yml/badge.svg"></a>
-<a href="https://github.com/MentalBlood/ruiner/blob/master/.github/workflows/typing.yml"><img alt="Typing Status" src="https://github.com/MentalBlood/ruiner/actions/workflows/typing.yml/badge.svg"></a>
-<a href="https://github.com/MentalBlood/ruiner/blob/master/.github/workflows/complexity.yml"><img alt="Complexity Status" src="https://github.com/MentalBlood/ruiner/actions/workflows/complexity.yml/badge.svg"></a>
-<a href="https://github.com/MentalBlood/ruiner/blob/master/.github/workflows/tests.yml"><img alt="Tests Status" src="https://github.com/MentalBlood/ruiner/actions/workflows/tests.yml/badge.svg"></a>
-<a href="https://github.com/MentalBlood/ruiner/blob/master/.github/workflows/coverage.yml"><img alt="Coverage Status" src="https://github.com/MentalBlood/ruiner/actions/workflows/coverage.yml/badge.svg"></a>
 <a href="https://github.com/psf/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
 <a href="https://www.python.org"><img alt="Python version: >=3.7" src="https://img.shields.io/badge/Python-3.7%20|%203.8%20|%203.9%20|%203.10%20|%203.11%20|%203.12-blue"></a>
 </p>
 
-Pure Python object oriented implementation of template language originally presented in [drunk snail](https://github.com/mentalblood/drunk_snail)
+Pure Python object oriented implementation of template language originally presented in [drunk snail](https://codeberg.org/mentalblood/drunk_snail)
 
 ## Why this language?
 
@@ -135,8 +130,8 @@ assert ruiner.Template(
 Using [pytest](https://pypi.org/project/pytest/) and [pytest-benchmark](https://github.com/ionelmc/pytest-benchmark):
 
 ```bash
-pip install --upgrade git+https://github.com/MentalBlood/ruiner
-git clone https://github.com/MentalBlood/ruiner
+pip install --upgrade git+https://codeberg.com/mentalblood/ruiner
+git clone https://codeber.org/mentalblood/ruiner
 cd ruiner
 pytest
 ```
